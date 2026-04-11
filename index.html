@@ -1,0 +1,2958 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>财务报告数据采集工具</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<style>
+/* ==================== 全局重置与变量 ==================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f7f5;
+  --bg-card: #ffffff;
+  --bg-input: #f0f0ee;
+  --bg-hover: #f5f5f3;
+  --border-color: #e8e8e6;
+  --border-focus: #4f46e5;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b6b6b;
+  --text-muted: #9b9b9b;
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-dim: rgba(79, 70, 229, 0.08);
+  --accent-text: #4f46e5;
+  --success: #16a34a;
+  --success-dim: rgba(22, 163, 74, 0.08);
+  --error: #dc2626;
+  --error-dim: rgba(220, 38, 38, 0.08);
+  --warning: #d97706;
+  --warning-dim: rgba(217, 119, 6, 0.08);
+  --info: #2563eb;
+  --info-dim: rgba(37, 99, 235, 0.08);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+html { font-size: 14px; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ==================== 顶部导航栏 ==================== */
+.header {
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 32px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-icon {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: #fff; font-weight: 700;
+}
+.header-title { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; }
+.header-badge {
+  background: var(--accent-dim);
+  color: var(--accent-text);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+/* ==================== 主布局 ==================== */
+.main-container {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 0;
+  height: calc(100vh - 56px);
+}
+
+/* ==================== 左侧配置面板 ==================== */
+.left-panel {
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border-color);
+  overflow-y: auto;
+  padding: 20px;
+}
+.left-panel::-webkit-scrollbar { width: 5px; }
+.left-panel::-webkit-scrollbar-track { background: transparent; }
+.left-panel::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+/* ==================== 右侧内容区 ==================== */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+
+/* ==================== 折叠区块 ==================== */
+.section { margin-bottom: 20px; }
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  user-select: none;
+}
+.section-header:hover { opacity: 0.8; }
+.section-header .collapse-arrow {
+  margin-left: auto;
+  transition: transform 0.2s;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+.section-header.collapsed .collapse-arrow { transform: rotate(-90deg); }
+.section-body {
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  max-height: 1000px;
+  opacity: 1;
+}
+.section-body.collapsed { max-height: 0; opacity: 0; }
+.section-icon {
+  width: 26px; height: 26px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+}
+.section-icon.green { background: var(--success-dim); color: var(--success); }
+.section-icon.blue { background: var(--info-dim); color: var(--info); }
+.section-icon.yellow { background: var(--warning-dim); color: var(--warning); }
+.section-icon.red { background: var(--error-dim); color: var(--error); }
+.section-title { font-size: 0.9rem; font-weight: 600; }
+
+/* ==================== 表单控件 ==================== */
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+.form-hint {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+textarea, input[type="text"], input[type="number"] {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  padding: 9px 12px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  resize: vertical;
+}
+textarea:focus, input[type="text"]:focus, input[type="number"]:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+textarea { min-height: 80px; }
+textarea.small { min-height: 50px; }
+
+/* ==================== 复选框组 ==================== */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+.checkbox-item:hover { border-color: var(--accent); }
+.checkbox-item.active {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+.checkbox-item input { display: none; }
+.checkbox-box {
+  width: 16px; height: 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.checkbox-item.active .checkbox-box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.checkbox-box::after {
+  content: '';
+  width: 4px; height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.checkbox-item.active .checkbox-box::after { opacity: 1; }
+.checkbox-label { font-size: 0.85rem; }
+
+/* ==================== 开关 ==================== */
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+.switch-label { font-size: 0.85rem; }
+.switch {
+  width: 42px; height: 24px;
+  background: var(--border-color);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.switch.active { background: var(--accent); }
+.switch-knob {
+  width: 18px; height: 18px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px; left: 3px;
+  transition: transform 0.3s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.switch.active .switch-knob { transform: translateX(18px); }
+
+/* ==================== 按钮 ==================== */
+.btn-row { display: flex; gap: 10px; margin-top: 20px; }
+.btn {
+  flex: 1;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.btn-danger {
+  background: var(--error-dim);
+  color: var(--error);
+  border: 1px solid rgba(220,38,38,0.2);
+}
+.btn-danger:hover { background: rgba(220,38,38,0.15); }
+.btn-danger:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ==================== 进度区域 ==================== */
+.progress-area {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 0;
+}
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.progress-title { font-size: 0.85rem; font-weight: 600; }
+.progress-stats { font-size: 0.8rem; color: var(--text-secondary); }
+.progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-input);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #7c3aed);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+.progress-bar-fill.indeterminate {
+  width: 30%;
+  animation: indeterminate 1.5s infinite ease-in-out;
+}
+@keyframes indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+
+/* ==================== 公司状态列表 ==================== */
+.company-status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.company-status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  background: var(--bg-input);
+}
+.status-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-dot.pending { background: var(--text-muted); }
+.status-dot.running { background: var(--info); animation: pulse 1s infinite; }
+.status-dot.success { background: var(--success); }
+.status-dot.error { background: var(--error); }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.company-status-name { flex: 1; }
+.company-status-text { color: var(--text-secondary); font-size: 0.72rem; }
+
+/* ==================== Tab 栏 ==================== */
+.tab-bar {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 20px;
+  gap: 0;
+}
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+.tab-btn:hover { color: var(--text-primary); }
+.tab-btn.active {
+  color: var(--accent-text);
+  border-bottom-color: var(--accent);
+}
+.tab-badge {
+  background: var(--accent-dim);
+  color: var(--accent-text);
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+.tab-panel {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+.tab-panel.active { display: flex; }
+
+/* ==================== 日志面板 ==================== */
+.log-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-primary);
+}
+.log-header-left { display: flex; align-items: center; gap: 10px; }
+.log-header-title { font-size: 0.9rem; font-weight: 600; }
+.log-count {
+  background: var(--accent-dim);
+  color: var(--accent-text);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+.btn-clear-log {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.73rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.btn-clear-log:hover { border-color: var(--error); color: var(--error); }
+.log-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 20px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
+  font-size: 0.78rem;
+  line-height: 1.7;
+  background: var(--bg-card);
+  margin: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+}
+.log-content::-webkit-scrollbar { width: 5px; }
+.log-content::-webkit-scrollbar-track { background: transparent; }
+.log-content::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+.log-entry { padding: 2px 0; display: flex; gap: 8px; }
+.log-time { color: var(--text-muted); flex-shrink: 0; }
+.log-msg { word-break: break-all; }
+.log-entry.info .log-msg { color: var(--text-primary); }
+.log-entry.success .log-msg { color: var(--success); }
+.log-entry.error .log-msg { color: var(--error); }
+.log-entry.warn .log-msg { color: var(--warning); }
+.log-entry.debug .log-msg { color: var(--text-muted); font-size: 0.74rem; }
+
+/* ==================== 文件管理面板 ==================== */
+.file-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.file-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  flex-wrap: wrap;
+}
+.file-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.file-toolbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-file-action {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.73rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-file-action:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.btn-file-action.primary-action {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+.btn-file-action.primary-action:hover {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-file-action:disabled { opacity: 0.4; cursor: not-allowed; }
+.file-list-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 20px;
+}
+.file-list-container::-webkit-scrollbar { width: 5px; }
+.file-list-container::-webkit-scrollbar-track { background: transparent; }
+.file-list-container::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+.file-group-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 12px 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.file-group-title:first-child { margin-top: 0; }
+.file-group-title .group-icon { font-size: 0.85rem; }
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  cursor: default;
+}
+.file-item:hover { background: var(--bg-hover); }
+.file-item-checkbox {
+  flex-shrink: 0;
+  width: 16px; height: 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.file-item-checkbox.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.file-item-checkbox.checked::after {
+  content: '';
+  width: 4px; height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+.file-item-icon {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.file-item-icon.excel {
+  background: var(--success-dim);
+  color: var(--success);
+}
+.file-item-icon.pdf {
+  background: var(--error-dim);
+  color: var(--error);
+}
+.file-item-icon.pdf-link {
+  background: var(--warning-dim);
+  color: var(--warning);
+}
+.file-item-info {
+  flex: 1;
+  min-width: 0;
+}
+.file-item-name {
+  font-size: 0.82rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.file-item-name.clickable {
+  cursor: pointer;
+  color: var(--info);
+}
+.file-item-name.clickable:hover {
+  color: var(--accent-text);
+  text-decoration: underline;
+}
+.file-item-meta {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.file-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  gap: 8px;
+}
+.file-empty-icon { font-size: 2rem; opacity: 0.35; }
+
+/* ==================== 预览模态框 ==================== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.active {
+  display: flex;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.modal-container {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 96vw;
+  max-height: 96vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  animation: scaleIn 0.2s ease;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+.modal-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  margin-right: 12px;
+}
+.modal-close {
+  width: 30px; height: 30px;
+  border: none;
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.modal-close:hover {
+  background: var(--error-dim);
+  color: var(--error);
+}
+.modal-body {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==================== Excel 预览 ==================== */
+.excel-sheet-tabs {
+  display: flex;
+  gap: 0;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-color);
+  overflow-x: auto;
+  background: var(--bg-secondary);
+  min-height: 40px;
+}
+.excel-sheet-tab {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 6px 14px;
+  margin-right: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.excel-sheet-tab:hover { 
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.excel-sheet-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.excel-table-wrap {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+.excel-table-wrap::-webkit-scrollbar { width: 5px; height: 5px; }
+.excel-table-wrap::-webkit-scrollbar-track { background: transparent; }
+.excel-table-wrap::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+.excel-table {
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+.excel-table th, .excel-table td {
+  border: 1px solid var(--border-color);
+  padding: 5px 10px;
+  text-align: left;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.excel-table th {
+  background: var(--bg-secondary);
+  font-weight: 600;
+  color: var(--accent-text);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.excel-table tr:hover td { background: var(--bg-hover); }
+
+/* ==================== PDF 预览 ==================== */
+.pdf-preview-wrap {
+  flex: 1;
+  overflow: hidden;
+}
+.pdf-preview-wrap iframe,
+.pdf-preview-wrap embed {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ==================== 加载动画 ==================== */
+.spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ==================== PDF链接样式 ==================== */
+.pdf-link {
+  color: var(--info);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.pdf-link:hover { color: var(--accent-text); }
+
+/* ==================== 代理状态面板 ==================== */
+.proxy-status-panel {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--bg-input);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+}
+.proxy-status-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.proxy-status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.proxy-status-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+.proxy-status-item .proxy-name {
+  flex: 1;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+.proxy-status-item .proxy-stats {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.proxy-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.proxy-dot.ok { background: var(--success); }
+.proxy-dot.fail { background: var(--error); }
+.proxy-dot.cooldown { background: var(--warning); }
+.proxy-dot.idle { background: var(--text-muted); }
+
+/* ==================== 响应式: 桌面 (>1024px) ==================== */
+@media (min-width: 1025px) {
+  .main-container { grid-template-columns: 420px 1fr; }
+}
+
+/* ==================== 响应式: 平板 (640px - 1024px) ==================== */
+@media (min-width: 640px) and (max-width: 1024px) {
+  .main-container { grid-template-columns: 340px 1fr; }
+}
+
+/* ==================== 响应式: 手机 (<640px) ==================== */
+@media (max-width: 639px) {
+  html { font-size: 13px; }
+  .header { padding: 0 16px; height: 48px; }
+  .header-title { font-size: 1rem; }
+  .header-badge { font-size: 0.65rem; padding: 2px 8px; }
+  .main-container {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: calc(100vh - 48px);
+  }
+  .left-panel {
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px;
+    max-height: none;
+  }
+  .right-panel {
+    height: 50vh;
+    min-height: 300px;
+  }
+  .section .section-body {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+  }
+  .section.open .section-body {
+    max-height: 1000px;
+    opacity: 1;
+  }
+  .section .section-header { cursor: pointer; user-select: none; }
+  .section .section-header .collapse-arrow { display: inline; }
+  .btn-row {
+    flex-direction: column;
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-primary);
+    padding: 12px 0;
+    margin-top: 12px;
+    z-index: 10;
+  }
+  .btn { width: 100%; }
+  .tab-btn { padding: 10px 14px; font-size: 0.82rem; }
+  .file-item { padding: 6px 8px; gap: 8px; }
+  .file-item-icon { width: 24px; height: 24px; font-size: 0.6rem; }
+  .file-item-name { font-size: 0.78rem; }
+  .file-toolbar { padding: 8px 16px; gap: 6px; }
+  .btn-file-action { padding: 3px 8px; font-size: 0.7rem; }
+  .modal-overlay { padding: 0; }
+  .modal-container { max-width: 100%; max-height: 100vh; border-radius: 0; height: 100vh; }
+  .log-content { margin: 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== 顶部导航栏 ==================== -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-icon">$</div>
+    <div class="header-title">财务报告数据采集工具</div>
+  </div>
+  <div class="header-badge">v3.0 | 纯浏览器运行</div>
+</div>
+
+<!-- ==================== 主容器 ==================== -->
+<div class="main-container">
+  <!-- 左侧配置面板 -->
+  <div class="left-panel">
+    <!-- 公司列表 -->
+    <div class="section open">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon green">&#x1F3E2;</div>
+        <div class="section-title">公司列表</div>
+        <span class="collapse-arrow">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="form-group">
+          <label class="form-label">公司名称（每行一个）</label>
+          <textarea id="companies" placeholder="艾为电子&#10;圣邦股份&#10;思瑞浦">艾为电子
+圣邦股份</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 报告年份 -->
+    <div class="section open">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon blue">&#x1F4C5;</div>
+        <div class="section-title">报告年份</div>
+        <span class="collapse-arrow">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="form-group">
+          <label class="form-label">年份（逗号分隔）</label>
+          <input type="text" id="years" value="2021, 2022, 2023" placeholder="2021, 2022, 2023">
+          <div class="form-hint">支持多个年份，用逗号或空格分隔</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 目标表格 -->
+    <div class="section open">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon yellow">&#x1F4CA;</div>
+        <div class="section-title">目标表格</div>
+        <span class="collapse-arrow">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="form-group">
+          <label class="form-label">表格名称（每行一个）</label>
+          <textarea id="targetTables" class="small" placeholder="合并利润表&#10;合并资产负债表">合并利润表
+合并资产负债表</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">表格名称匹配长度限制</label>
+          <input type="number" id="nameLength" value="100" min="1" max="500">
+          <div class="form-hint">只匹配名称长度小于此值的 p 标签</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 报告类型 -->
+    <div class="section open">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon red">&#x1F4D1;</div>
+        <div class="section-title">报告类型</div>
+        <span class="collapse-arrow">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="checkbox-group" id="reportTypes">
+          <label class="checkbox-item active" data-value="ndbg">
+            <input type="checkbox" checked>
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label">年报</span>
+          </label>
+          <label class="checkbox-item active" data-value="zqbg">
+            <input type="checkbox" checked>
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label">中报</span>
+          </label>
+          <label class="checkbox-item" data-value="sjdbg">
+            <input type="checkbox">
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label">三季报</span>
+          </label>
+          <label class="checkbox-item" data-value="yjdbg">
+            <input type="checkbox">
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label">一季报</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDF下载 -->
+    <div class="section open">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon blue">&#x1F4C4;</div>
+        <div class="section-title">PDF下载</div>
+        <span class="collapse-arrow">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="switch-row">
+          <span class="switch-label">下载PDF公告</span>
+          <div class="switch" id="needPdfSwitch">
+            <div class="switch-knob"></div>
+          </div>
+        </div>
+        <div class="form-hint">开启后将尝试获取PDF下载链接（可能受CORS限制）</div>
+      </div>
+    </div>
+
+    <!-- 代理设置 -->
+    <div class="section open">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon settings">&#9881;</div>
+        <div class="section-title">代理设置</div>
+        <span class="collapse-arrow">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="form-group">
+          <label class="form-label">自定义代理URL（每行一个）</label>
+          <textarea id="customProxies" placeholder="https://proxy.killcors.com/?url=&#10;https://corsproxy.io/?url="></textarea>
+          <div class="form-hint">格式：代理URL前缀，目标URL会自动拼接在后面。已实测可用的代理：proxy.killcors.com</div>
+        </div>
+        <div class="switch-row">
+          <span class="switch-label">使用自定义代理</span>
+          <div class="switch" id="useCustomProxySwitch">
+            <div class="switch-knob"></div>
+          </div>
+        </div>
+        <div class="form-hint" style="margin-top:-6px;">开启后优先使用自定义代理，内置代理作为备用</div>
+        <button class="btn btn-secondary" id="btnTestProxies" onclick="testCustomProxies()" style="width:100%;margin-top:10px;background:var(--bg-input);border:1px solid var(--border-color);color:var(--text-primary);">测试代理</button>
+        <div id="proxyTestResult" style="margin-top:10px;font-size:0.8rem;"></div>
+      </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnStart" onclick="startFetching()">
+        <span>&#9654;</span> 开始采集
+      </button>
+      <button class="btn btn-danger" id="btnStop" onclick="stopFetching()" disabled>
+        <span>&#9632;</span> 停止
+      </button>
+    </div>
+
+    <!-- 代理状态面板 -->
+    <div class="proxy-status-panel" id="proxyStatusPanel">
+      <div class="proxy-status-title">
+        <span>&#x1F310;</span> 代理状态
+      </div>
+      <div class="proxy-status-list" id="proxyStatusList">
+        <!-- 由JS动态填充 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 右侧内容区 -->
+  <div class="right-panel">
+    <!-- 进度条 -->
+    <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: var(--bg-primary);">
+      <div class="progress-area">
+        <div class="progress-header">
+          <span class="progress-title" id="progressTitle">就绪</span>
+          <span class="progress-stats" id="progressStats">0 / 0</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+        <div class="company-status-list" id="companyStatusList"></div>
+      </div>
+    </div>
+
+    <!-- Tab 栏 -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('log')" id="tabBtnLog">
+        运行日志
+        <span class="tab-badge" id="logCount">0</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('files')" id="tabBtnFiles">
+        文件管理
+        <span class="tab-badge" id="fileCount">0</span>
+      </button>
+    </div>
+
+    <!-- Tab面板: 日志 -->
+    <div class="tab-panel active" id="panelLog">
+      <div class="log-panel">
+        <div class="log-header">
+          <div class="log-header-left">
+            <span class="log-header-title">运行日志</span>
+          </div>
+          <button class="btn-clear-log" onclick="clearLog()">清空日志</button>
+        </div>
+        <div class="log-content" id="logContent"></div>
+      </div>
+    </div>
+
+    <!-- Tab面板: 文件管理 -->
+    <div class="tab-panel" id="panelFiles">
+      <div class="file-panel">
+        <div class="file-toolbar">
+          <div class="file-toolbar-left">
+            <button class="btn-file-action" onclick="selectAllFiles()">全选</button>
+            <button class="btn-file-action" onclick="deselectAllFiles()">取消全选</button>
+          </div>
+          <div class="file-toolbar-right">
+            <button class="btn-file-action primary-action" id="btnDownloadZip" onclick="downloadSelectedZip()" disabled>
+              下载选中文件 (ZIP)
+            </button>
+          </div>
+        </div>
+        <div class="file-list-container" id="fileListContainer">
+          <div class="file-empty" id="fileEmpty">
+            <div class="file-empty-icon">&#x1F4C2;</div>
+            <div>暂无采集文件</div>
+            <div style="font-size:0.75rem;">开始采集后，Excel报告和PDF文件将显示在这里</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 预览模态框 ==================== -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal-container">
+    <div class="modal-header">
+      <div class="modal-title" id="previewTitle">预览</div>
+      <button class="modal-close" onclick="closePreviewModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="previewBody"></div>
+  </div>
+</div>
+
+<script>
+// ==================== 全局状态 ====================
+let isRunning = false;
+let shouldStop = false;
+let logCountNum = 0;
+let fileIdCounter = 0;
+
+// 全局文件存储
+// type: 'excel' | 'pdf' | 'pdf-link'
+// category: 'reports' | 'pdfs'
+let collectedFiles = [];
+
+// ==================== CORS代理系统（全面升级） ====================
+
+// 文本内容代理（用于HTML页面获取）
+const textProxies = [
+  // ⭐ 经过实测可用（2026-04-10）
+  url => `https://proxy.killcors.com/?url=${encodeURIComponent(url)}`,
+  // 备用代理（可能不稳定）
+  url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://cors.x2u.in/${url.replace(/^https?:\/\//, '')}`,
+];
+
+// 二进制内容代理（用于PDF下载）
+const binaryProxies = [
+  // ⭐ 经过实测可用（2026-04-10）
+  url => `https://proxy.killcors.com/?url=${encodeURIComponent(url)}`,
+  // 备用代理
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
+
+// 代理健康状态追踪
+// { proxyFn, name, successCount, failCount, consecutiveFails, lastFailTime, cooldownUntil }
+const proxyHealth = new Map();
+
+/**
+ * 获取代理的简短名称（用于日志和状态面板显示）
+ */
+function getProxyName(proxyFn) {
+  const url = proxyFn('https://example.com');
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace('www.', '');
+    if (host.includes('killcors')) return '⭐KillCors';
+    if (host.includes('allorigins') && url.includes('/get?')) return 'AllOrigins(JSON)';
+    if (host.includes('allorigins') && url.includes('/raw?')) return 'AllOrigins(Raw)';
+    if (host.includes('corsproxy.io')) return 'CorsProxy.io';
+    if (host.includes('codetabs')) return 'CodeTabs';
+    if (host.includes('cors.sh')) return 'Cors.sh';
+    if (host.includes('cors-anywhere')) return 'CorsAnywhere';
+    if (host.includes('x2u')) return 'Cors.x2u.in';
+    return host;
+  } catch (e) {
+    return 'Unknown';
+  }
+}
+
+/**
+ * 初始化代理健康状态
+ */
+function initProxyHealth() {
+  proxyHealth.clear();
+  for (const fn of textProxies) {
+    proxyHealth.set(fn, {
+      proxyFn: fn,
+      name: getProxyName(fn),
+      successCount: 0,
+      failCount: 0,
+      consecutiveFails: 0,
+      lastFailTime: 0,
+      cooldownUntil: 0,
+      type: 'text'
+    });
+  }
+  for (const fn of binaryProxies) {
+    // 避免重复注册同一个函数引用
+    if (!proxyHealth.has(fn)) {
+      proxyHealth.set(fn, {
+        proxyFn: fn,
+        name: getProxyName(fn),
+        successCount: 0,
+        failCount: 0,
+        consecutiveFails: 0,
+        lastFailTime: 0,
+        cooldownUntil: 0,
+        type: 'binary'
+      });
+    }
+  }
+  renderProxyStatus();
+}
+
+/**
+ * 标记代理成功
+ */
+function markProxySuccess(proxyFn) {
+  const h = proxyHealth.get(proxyFn);
+  if (h) {
+    h.successCount++;
+    h.consecutiveFails = 0;
+    renderProxyStatus();
+  }
+}
+
+/**
+ * 标记代理失败
+ */
+function markProxyFailed(proxyFn, reason) {
+  const h = proxyHealth.get(proxyFn);
+  if (h) {
+    h.failCount++;
+    h.consecutiveFails++;
+    h.lastFailTime = Date.now();
+    // 连续失败3次，冷却60秒
+    if (h.consecutiveFails >= 3) {
+      h.cooldownUntil = Date.now() + 60000;
+      addLog(`[代理] ${h.name} 连续失败3次，冷却60秒`, 'warn');
+    }
+    renderProxyStatus();
+  }
+}
+
+/**
+ * 获取可用代理列表（排除冷却中的）
+ */
+function getAvailableProxies(type) {
+  const now = Date.now();
+  const sourceList = type === 'binary' ? binaryProxies : textProxies;
+  return sourceList.filter(fn => {
+    const h = proxyHealth.get(fn);
+    if (!h) return true;
+    // 检查冷却是否已过期
+    if (h.cooldownUntil > now) return false;
+    return true;
+  });
+}
+
+/**
+ * Fisher-Yates 随机打乱数组
+ */
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * 渲染代理状态面板
+ */
+function renderProxyStatus() {
+  const container = document.getElementById('proxyStatusList');
+  if (!container) return;
+
+  let html = '';
+  const now = Date.now();
+
+  // 只显示文本代理（主要使用的）
+  for (const fn of textProxies) {
+    const h = proxyHealth.get(fn);
+    if (!h) continue;
+
+    let dotClass = 'idle';
+    let statusText = '就绪';
+
+    if (h.cooldownUntil > now) {
+      dotClass = 'cooldown';
+      const remaining = Math.ceil((h.cooldownUntil - now) / 1000);
+      statusText = `冷却中 (${remaining}s)`;
+    } else if (h.consecutiveFails >= 3) {
+      dotClass = 'fail';
+      statusText = '不可用';
+    } else if (h.successCount > 0 && h.failCount === 0) {
+      dotClass = 'ok';
+      statusText = '正常';
+    } else if (h.failCount > h.successCount) {
+      dotClass = 'fail';
+      statusText = '不稳定';
+    } else if (h.successCount > 0) {
+      dotClass = 'ok';
+      statusText = '正常';
+    }
+
+    html += `
+      <div class="proxy-status-item">
+        <span class="proxy-dot ${dotClass}"></span>
+        <span class="proxy-name" title="${h.name}">${h.name}</span>
+        <span class="proxy-stats">${statusText} | ${h.successCount}S/${h.failCount}F</span>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+}
+
+// 定时刷新代理状态面板（更新冷却倒计时）
+setInterval(renderProxyStatus, 2000);
+
+// ==================== UI 辅助函数 ====================
+function getTimestamp() {
+  const d = new Date();
+  return d.toTimeString().split(' ')[0];
+}
+
+function addLog(msg, level = 'info') {
+  const logContent = document.getElementById('logContent');
+  const entry = document.createElement('div');
+  entry.className = `log-entry ${level}`;
+  entry.innerHTML = `<span class="log-time">[${getTimestamp()}]</span><span class="log-msg">${escapeHtml(msg)}</span>`;
+  logContent.appendChild(entry);
+  logContent.scrollTop = logContent.scrollHeight;
+  logCountNum++;
+  document.getElementById('logCount').textContent = logCountNum;
+}
+
+function clearLog() {
+  document.getElementById('logContent').innerHTML = '';
+  logCountNum = 0;
+  document.getElementById('logCount').textContent = '0';
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function setProgress(title, current, total) {
+  document.getElementById('progressTitle').textContent = title;
+  document.getElementById('progressStats').textContent = `${current} / ${total}`;
+  const pct = total > 0 ? (current / total * 100) : 0;
+  const bar = document.getElementById('progressBar');
+  bar.classList.remove('indeterminate');
+  bar.style.width = pct + '%';
+}
+
+function setProgressIndeterminate(title) {
+  document.getElementById('progressTitle').textContent = title;
+  document.getElementById('progressStats').textContent = '...';
+  const bar = document.getElementById('progressBar');
+  bar.classList.add('indeterminate');
+  bar.style.width = '30%';
+}
+
+// 公司状态列表
+function initCompanyStatusList(companies) {
+  const list = document.getElementById('companyStatusList');
+  list.innerHTML = '';
+  companies.forEach(name => {
+    const item = document.createElement('div');
+    item.className = 'company-status-item';
+    item.id = `status-${name}`;
+    item.innerHTML = `
+      <span class="status-dot pending"></span>
+      <span class="company-status-name">${escapeHtml(name)}</span>
+      <span class="company-status-text">等待中</span>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function updateCompanyStatus(name, status, text) {
+  const item = document.getElementById(`status-${name}`);
+  if (!item) return;
+  const dot = item.querySelector('.status-dot');
+  const label = item.querySelector('.company-status-text');
+  dot.className = `status-dot ${status}`;
+  label.textContent = text;
+}
+
+// ==================== Tab 切换 ====================
+function switchTab(tabName) {
+  document.getElementById('tabBtnLog').classList.toggle('active', tabName === 'log');
+  document.getElementById('tabBtnFiles').classList.toggle('active', tabName === 'files');
+  document.getElementById('panelLog').classList.toggle('active', tabName === 'log');
+  document.getElementById('panelFiles').classList.toggle('active', tabName === 'files');
+  if (tabName === 'files') {
+    renderFileList();
+  }
+}
+
+// ==================== Section 折叠 ====================
+function toggleSection(headerEl) {
+  const section = headerEl.parentElement;
+  section.classList.toggle('open');
+  headerEl.classList.toggle('collapsed');
+}
+
+// ==================== Checkbox / Switch 逻辑 ====================
+document.querySelectorAll('.checkbox-item').forEach(item => {
+  item.addEventListener('click', (e) => {
+    e.preventDefault(); // 阻止label默认行为，避免双重toggle
+    item.classList.toggle('active');
+    const cb = item.querySelector('input');
+    cb.checked = item.classList.contains('active');
+  });
+});
+
+document.getElementById('needPdfSwitch').addEventListener('click', function(e) {
+  e.preventDefault();
+  this.classList.toggle('active');
+});
+
+// 自定义代理开关
+document.getElementById('useCustomProxySwitch').addEventListener('click', function(e) {
+  e.preventDefault();
+  this.classList.toggle('active');
+});
+
+// ==================== 配置解析 ====================
+function getConfig() {
+  const companies = document.getElementById('companies').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const years = document.getElementById('years').value.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean);
+  const targetTables = document.getElementById('targetTables').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const reportTypes = [];
+  document.querySelectorAll('#reportTypes .checkbox-item.active').forEach(item => {
+    reportTypes.push(item.dataset.value);
+  });
+  const needPdf = document.getElementById('needPdfSwitch').classList.contains('active');
+  const nameLength = parseInt(document.getElementById('nameLength').value) || 100;
+  const customProxies = document.getElementById('customProxies').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const useCustomProxy = document.getElementById('useCustomProxySwitch').classList.contains('active');
+  return { companies, years, targetTables, reportTypes, needPdf, nameLength, customProxies, useCustomProxy };
+}
+
+// ==================== 配置保存与恢复 ====================
+function saveConfig() {
+  const config = getConfig();
+  localStorage.setItem('financialFetcherConfig', JSON.stringify(config));
+}
+
+function loadConfig() {
+  const saved = localStorage.getItem('financialFetcherConfig');
+  if (saved) {
+    try {
+      const config = JSON.parse(saved);
+      if (config.companies) document.getElementById('companies').value = config.companies.join('\n');
+      if (config.years) document.getElementById('years').value = config.years.join(', ');
+      if (config.targetTables) document.getElementById('targetTables').value = config.targetTables.join('\n');
+      if (config.nameLength) document.getElementById('nameLength').value = config.nameLength;
+      if (config.customProxies) document.getElementById('customProxies').value = config.customProxies.join('\n');
+      if (config.reportTypes) {
+        document.querySelectorAll('#reportTypes .checkbox-item').forEach(item => {
+          item.classList.toggle('active', config.reportTypes.includes(item.dataset.value));
+        });
+      }
+      if (config.needPdf) document.getElementById('needPdfSwitch').classList.add('active');
+      if (config.useCustomProxy) document.getElementById('useCustomProxySwitch').classList.add('active');
+      addLog('已恢复上次保存的配置', 'info');
+    } catch (e) {
+      console.error('恢复配置失败:', e);
+    }
+  }
+}
+
+// 页面加载时恢复配置
+window.addEventListener('load', loadConfig);
+
+// ==================== CORS代理请求（文本内容，智能轮换） ====================
+/**
+ * 构建自定义代理函数
+ */
+function buildCustomProxyFn(proxyUrl) {
+  return (targetUrl) => {
+    // 确保代理URL格式正确
+    if (proxyUrl.includes('?url=')) {
+      // 替换 {url} 占位符或追加到现有参数
+      if (proxyUrl.includes('{url}')) {
+        return proxyUrl.replace('{url}', encodeURIComponent(targetUrl));
+      } else {
+        return proxyUrl + encodeURIComponent(targetUrl);
+      }
+    } else {
+      // 简单拼接
+      return proxyUrl + encodeURIComponent(targetUrl);
+    }
+  };
+}
+
+/**
+ * 获取自定义代理名称
+ */
+function getCustomProxyName(proxyUrl) {
+  try {
+    const u = new URL(proxyUrl);
+    return u.hostname.replace('www.', '');
+  } catch (e) {
+    return proxyUrl.substring(0, 30);
+  }
+}
+
+async function fetchViaProxy(url, retries = 3) {
+  const config = getConfig();
+  let proxyFns = [];
+  let proxyNames = new Map(); // 存储代理名称映射
+  
+  // 优先使用自定义代理
+  if (config.useCustomProxy && config.customProxies && config.customProxies.length > 0) {
+    for (const proxyUrl of config.customProxies) {
+      const fn = buildCustomProxyFn(proxyUrl);
+      proxyFns.push(fn);
+      proxyNames.set(fn, getCustomProxyName(proxyUrl));
+    }
+    addLog(`[代理] 使用 ${proxyFns.length} 个自定义代理`, 'info');
+  }
+  
+  // 添加内置代理作为备用
+  const builtInProxies = getAvailableProxies('text');
+  for (const fn of builtInProxies) {
+    proxyFns.push(fn);
+    proxyNames.set(fn, getProxyName(fn));
+  }
+  
+  // 随机打乱顺序
+  proxyFns = shuffleArray(proxyFns);
+  
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    // 指数退避延迟
+    const backoffDelay = Math.pow(2, attempt - 1) * 1000; // 1秒, 2秒, 4秒
+    if (attempt > 1) {
+      addLog(`[重试] 第 ${attempt} 次尝试，等待 ${backoffDelay/1000} 秒后重试...`, 'warn');
+      // 显示倒计时
+      for (let i = backoffDelay/1000; i > 0; i--) {
+        setProgress(`重试倒计时: ${i}秒`, attempt - 1, retries);
+        await sleep(1000);
+      }
+    }
+    
+    for (const proxyFn of proxyFns) {
+      if (shouldStop) throw new Error('用户停止');
+      
+      try {
+        const proxyUrl = proxyFn(url);
+        const proxyName = proxyNames.get(proxyFn) || 'Unknown';
+        
+        // 调试信息：显示当前使用的代理和请求URL
+        addLog(`[代理] 使用代理: ${proxyName}`, 'debug');
+        addLog(`[请求] 完整URL: ${proxyUrl.substring(0, 100)}...`, 'debug');
+        
+        const startTime = Date.now();
+        const resp = await fetch(proxyUrl, {
+          signal: AbortSignal.timeout(30000),
+          headers: { 'Accept': 'text/html,application/json,*/*' }
+        });
+        const elapsed = Date.now() - startTime;
+        
+        // 调试信息：显示响应状态码
+        addLog(`[响应] 状态码: ${resp.status}, 耗时: ${elapsed}ms`, 'debug');
+        
+        if (!resp.ok) {
+          const errorMsg = `HTTP ${resp.status} ${resp.statusText}`;
+          addLog(`[失败] ${proxyName}: ${errorMsg}`, 'warn');
+          markProxyFailed(proxyFn, errorMsg);
+          throw new Error(errorMsg);
+        }
+
+        let text;
+        const ct = resp.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          // JSON响应
+          const json = await resp.json();
+          text = json.contents || JSON.stringify(json);
+        } else {
+          // 先获取arrayBuffer（用于可能的GBK解码）
+          const buffer = await resp.arrayBuffer();
+          // 默认用UTF-8解码
+          text = new TextDecoder('utf-8').decode(buffer);
+          // 检测是否需要GBK解码（新浪财经等中文网站使用GBK编码）
+          const hasGarbled = text.includes('\ufffd\ufffd') || text.includes('\ufffd');
+          const isGbkPage = text.includes('charset=gb') || text.includes('charset=GB');
+          if (hasGarbled || isGbkPage) {
+            try {
+              const gbkText = new TextDecoder('gbk').decode(buffer);
+              // 验证GBK解码是否更合理（包含更多中文字符）
+              const chineseCount = (str) => (str.match(/[\u4e00-\u9fff]/g) || []).length;
+              if (chineseCount(gbkText) > chineseCount(text) + 5) {
+                text = gbkText;
+                addLog(`[编码] 检测到GBK编码，已自动转换（中文字符: ${chineseCount(text)}）`, 'debug');
+              }
+            } catch (e) {
+              // GBK解码失败，使用原始UTF-8文本
+            }
+          }
+        }
+
+        // 验证内容有效性
+        if (!text || text.length < 100) {
+          const errorMsg = `返回内容为空或过短 (${text ? text.length : 0} 字符)`;
+          addLog(`[失败] ${proxyName}: ${errorMsg}`, 'warn');
+          markProxyFailed(proxyFn, errorMsg);
+          throw new Error(errorMsg);
+        }
+
+        markProxySuccess(proxyFn);
+        
+        // 调试信息：显示响应内容前100个字符
+        const preview = text.substring(0, 100).replace(/<[^>]*>/g, '').trim();
+        addLog(`[成功] ${proxyName} 获取到 ${text.length} 字符`, 'success');
+        addLog(`[调试] 内容开头: ${preview}`, 'debug');
+
+        return text;
+      } catch (e) {
+        const proxyName = proxyNames.get(proxyFn) || 'Unknown';
+        // 详细错误信息
+        let errorDetail = e.message;
+        if (e.name === 'AbortError' || e.name === 'TimeoutError') {
+          errorDetail = '请求超时 (30秒)';
+        } else if (e.message.includes('Failed to fetch')) {
+          errorDetail = '网络错误或CORS被阻止';
+        }
+        addLog(`[代理] ${proxyName} 失败: ${errorDetail}`, 'warn');
+        
+        // 如果是最后一个代理的最后一次重试，抛出错误
+        if (attempt === retries && proxyFn === proxyFns[proxyFns.length - 1]) {
+          addLog(`[错误] 所有代理均失败，已重试 ${retries} 次`, 'error');
+          throw new Error(`所有代理均失败: ${errorDetail}`);
+        }
+      }
+    }
+  }
+  throw new Error('所有代理均失败');
+}
+
+// ==================== CORS代理请求（二进制内容，用于PDF） ====================
+async function fetchBinaryViaProxy(url, retries = 2) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    let proxies = getAvailableProxies('binary');
+    proxies = shuffleArray(proxies);
+
+    for (const proxyFn of proxies) {
+      try {
+        const proxyUrl = proxyFn(url);
+        const proxyName = getProxyName(proxyFn);
+        addLog(`[PDF代理] ${proxyName} 请求: ${url.substring(0, 60)}...`, 'debug');
+        const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(60000) });
+        if (!resp.ok) {
+          markProxyFailed(proxyFn, `HTTP ${resp.status}`);
+          throw new Error(`HTTP ${resp.status}`);
+        }
+        const blob = await resp.blob();
+        if (blob.size > 1000) {
+          markProxySuccess(proxyFn);
+          return blob;
+        } else {
+          markProxyFailed(proxyFn, `内容过小(${blob.size}B)`);
+          throw new Error(`返回内容过小 (${blob.size} bytes)`);
+        }
+      } catch (e) {
+        const proxyName = getProxyName(proxyFn);
+        addLog(`[PDF代理] ${proxyName} 失败: ${e.message}`, 'warn');
+        if (attempt === retries && proxyFn === proxies[proxies.length - 1]) {
+          throw e;
+        }
+      }
+    }
+    await sleep(2000);
+  }
+  throw new Error('所有代理均无法下载PDF');
+}
+
+// ==================== 工具函数 ====================
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function randomDelay(minMs = 5000, maxMs = 15000) {
+  const ms = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// ==================== 报告类型映射 ====================
+const reportTypeNames = {
+  ndbg: '年度报告',
+  zqbg: '半年度报告',
+  sjdbg: '三季度报告',
+  yjdbg: '一季度报告'
+};
+
+// 报告类型关键词（宽松匹配用）
+const typeKeywords = {
+  ndbg: ['年度报告', '年报'],
+  zqbg: ['半年度报告', '半年度', '中报'],
+  sjdbg: ['三季度报告', '三季度'],
+  yjdbg: ['一季度报告', '一季度']
+};
+
+// ==================== 步骤A: 搜索股票代码 ====================
+async function searchStockCode(companyName) {
+  addLog(`搜索股票代码: ${companyName}`, 'info');
+
+  // 方法1: JSON API
+  try {
+    const apiUrl = `https://searchapi.eastmoney.com/api/suggest/get?input=${encodeURIComponent(companyName)}&type=14&token=D43BF722C8E33BDC906FB84D85E326E8`;
+    const text = await fetchViaProxy(apiUrl);
+    const json = JSON.parse(text);
+    if (json && json.QuotationCodeTable && json.QuotationCodeTable.Data) {
+      for (const item of json.QuotationCodeTable.Data) {
+        if (item.SecurityTypeName === 'A股' || item.MktNum === '0' || item.MktNum === '1') {
+          const code = item.Code;
+          if (/^\d{6}$/.test(code)) {
+            addLog(`[JSON API] 找到股票代码: ${code} (${item.Name || companyName})`, 'success');
+            return code;
+          }
+        }
+      }
+    }
+    // 兜底: 取第一个结果
+    if (json && json.QuotationCodeTable && json.QuotationCodeTable.Data && json.QuotationCodeTable.Data.length > 0) {
+      const code = json.QuotationCodeTable.Data[0].Code;
+      addLog(`[JSON API] 使用第一个结果: ${code}`, 'success');
+      return code;
+    }
+  } catch (e) {
+    addLog(`JSON API搜索失败: ${e.message}，尝试HTML解析...`, 'warn');
+  }
+
+  // 方法2: HTML解析
+  try {
+    const searchUrl = `https://so.eastmoney.com/web/s?keyword=${encodeURIComponent(companyName)}`;
+    const html = await fetchViaProxy(searchUrl);
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const links = doc.querySelectorAll('a.exstock_t_l');
+    for (const link of links) {
+      const match = link.textContent.match(/\((\d{6})\)/);
+      if (match) {
+        addLog(`[HTML解析] 找到股票代码: ${match[1]}`, 'success');
+        return match[1];
+      }
+    }
+    const allLinks = doc.querySelectorAll('a[href*="quote.eastmoney"]');
+    for (const link of allLinks) {
+      const match = link.href.match(/(\d{6})\.html/);
+      if (match) {
+        addLog(`[HTML解析] 找到股票代码: ${match[1]}`, 'success');
+        return match[1];
+      }
+    }
+  } catch (e) {
+    addLog(`HTML搜索失败: ${e.message}`, 'error');
+  }
+
+  throw new Error(`无法找到 "${companyName}" 的股票代码`);
+}
+
+// ==================== 步骤B: 获取公告列表（宽松匹配） ====================
+async function getAnnouncementList(stockId, reportType, years) {
+  addLog(`获取公告列表: 股票${stockId}, 类型=${reportTypeNames[reportType] || reportType}`, 'info');
+  const url = `https://vip.stock.finance.sina.com.cn/corp/go.php/vCB_Bulletin/stockid/${stockId}/page_type/${reportType}.phtml`;
+  const html = await fetchViaProxy(url);
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  const results = [];
+
+  // 调试：输出页面中所有链接数量
+  const allLinks = doc.querySelectorAll('a[href]');
+  addLog(`[调试] 页面共有 ${allLinks.length} 个链接`, 'debug');
+
+  // 获取匹配关键词
+  const keywords = typeKeywords[reportType] || [];
+
+  // 严格匹配：使用完整类型名 + 年份
+  const datelist = doc.querySelector('div.datelist');
+  let searchLinks = datelist ? datelist.querySelectorAll('a') : allLinks;
+
+  if (!datelist) {
+    addLog(`未找到 div.datelist，使用页面所有链接进行匹配`, 'warn');
+  }
+
+  for (const a of searchLinks) {
+    const text = a.textContent.trim();
+    const href = a.getAttribute('href');
+    if (!href) continue;
+
+    for (const year of years) {
+      // 检查是否匹配任一关键词和年份
+      const matchesType = keywords.some(kw => text.includes(kw));
+      const matchesYear = text.includes(String(year));
+
+      if (matchesType && matchesYear) {
+        const fullUrl = href.startsWith('http') ? href : `https://vip.stock.finance.sina.com.cn/${href}`;
+        // 避免重复
+        if (!results.some(r => r.url === fullUrl)) {
+          results.push({ title: text, url: fullUrl, year });
+          addLog(`找到公告: ${text}`, 'success');
+        }
+      }
+    }
+  }
+
+  // 宽松匹配：如果严格匹配没找到，只要包含"报告"和年份
+  if (results.length === 0) {
+    addLog(`严格匹配无结果，尝试宽松匹配（包含"报告"和年份）`, 'warn');
+    for (const a of allLinks) {
+      const text = a.textContent.trim();
+      const href = a.getAttribute('href');
+      if (!href) continue;
+
+      for (const year of years) {
+        if (text.includes('报告') && text.includes(String(year))) {
+          const fullUrl = href.startsWith('http') ? href : `https://vip.stock.finance.sina.com.cn/${href}`;
+          if (!results.some(r => r.url === fullUrl)) {
+            results.push({ title: text, url: fullUrl, year });
+            addLog(`[宽松匹配] 找到公告: ${text}`, 'success');
+          }
+        }
+      }
+    }
+  }
+
+  // 调试：输出所有链接文本（当匹配结果为空时）
+  if (results.length === 0) {
+    addLog(`[调试] 未找到匹配公告，输出前20个链接文本:`, 'warn');
+    const linkTexts = Array.from(allLinks).slice(0, 20).map((a, i) => `${i + 1}. [${a.textContent.trim().substring(0, 50)}]`);
+    linkTexts.forEach(t => addLog(`  ${t}`, 'debug'));
+  }
+
+  if (results.length === 0) {
+    addLog(`未找到匹配的公告 (股票${stockId}, ${reportTypeNames[reportType]})`, 'warn');
+  }
+  return results;
+}
+
+// ==================== 步骤C: 爬取报告表格 ====================
+async function fetchReportTables(reportUrl, targetTables, nameLengthLimit) {
+  addLog(`爬取报告内容: ${reportUrl.substring(0, 80)}...`, 'info');
+  const html = await fetchViaProxy(reportUrl);
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  const allTables = {};
+
+  for (const tableName of targetTables) {
+    addLog(`查找表格: "${tableName}"`, 'info');
+
+    // 查找所有匹配的表格（可能跨页有多个）
+    let foundTables = findTablesInDoc(doc, tableName, nameLengthLimit);
+
+    // 如果没找到，尝试去掉"合并"
+    if (foundTables.length === 0 && tableName.includes('合并')) {
+      const shortName = tableName.replace('合并', '');
+      addLog(`未找到，尝试去掉"合并": "${shortName}"`, 'warn');
+      foundTables = findTablesInDoc(doc, shortName, nameLengthLimit);
+    }
+
+    if (foundTables.length > 0) {
+      // 合并所有找到的表格数据（处理跨页情况）
+      let mergedRows = [];
+      for (const tableRows of foundTables) {
+        if (mergedRows.length === 0) {
+          mergedRows = tableRows;
+        } else {
+          // 跨页合并：跳过重复的表头行
+          if (tableRows.length > 1) {
+            const firstDataRow = tableRows[0];
+            const lastMergedRow = mergedRows[mergedRows.length - 1];
+            if (isSimilarRow(firstDataRow, lastMergedRow)) {
+              mergedRows = mergedRows.concat(tableRows.slice(1));
+            } else {
+              mergedRows = mergedRows.concat(tableRows);
+            }
+          }
+        }
+      }
+      allTables[tableName] = mergedRows;
+      addLog(`成功提取表格 "${tableName}"，共 ${mergedRows.length} 行（来自 ${foundTables.length} 个表格片段）`, 'success');
+    } else {
+      addLog(`未找到表格 "${tableName}"`, 'error');
+      allTables[tableName] = [];
+    }
+  }
+
+  // 同时提取PDF链接（避免重复请求报告页面）
+  const pdfLink = extractPdfLinkFromHtml(html, reportUrl);
+  if (pdfLink) {
+    allTables['__pdfLink__'] = pdfLink;
+  }
+
+  return allTables;
+}
+
+/**
+ * 判断两行是否相似（用于跨页合并时跳过重复表头）
+ */
+function isSimilarRow(row1, row2) {
+  if (!row1 || !row2) return false;
+  if (row1.length !== row2.length) return false;
+  let matchCount = 0;
+  for (let i = 0; i < row1.length; i++) {
+    if (row1[i] && row2[i] && row1[i].trim() === row2[i].trim()) {
+      matchCount++;
+    }
+  }
+  return matchCount / row1.length > 0.7;
+}
+
+/**
+ * 在文档中查找所有匹配的表格（增强版，增加详细调试日志）
+ */
+function findTablesInDoc(doc, tableName, nameLengthLimit) {
+  const results = [];
+  const allP = doc.querySelectorAll('p');
+
+  addLog(`[调试] 文档共有 ${allP.length} 个 <p> 标签`, 'debug');
+
+  // 统计包含目标关键词的p标签
+  let matchCount = 0;
+  for (const p of allP) {
+    const text = p.textContent.trim();
+    if (text.length <= nameLengthLimit && text.includes(tableName)) {
+      matchCount++;
+    }
+  }
+  addLog(`[调试] 其中 ${matchCount} 个 <p> 标签包含 "${tableName}"（长度<=${nameLengthLimit}）`, 'debug');
+
+  for (let i = 0; i < allP.length; i++) {
+    const p = allP[i];
+    const text = p.textContent.trim();
+    if (text.length > nameLengthLimit) continue;
+    if (!text.includes(tableName)) continue;
+
+    addLog(`[调试] 匹配到p标签 #${i}: "${text.substring(0, 80)}"`, 'debug');
+
+    // 策略a: 遍历后续兄弟元素，查找table（最多往下找20个兄弟）
+    let sibling = p.nextElementSibling;
+    let siblingCount = 0;
+    while (sibling && siblingCount < 20) {
+      const table = findTableInElement(sibling);
+      if (table) {
+        const parsed = parseTable(table);
+        if (isValidTable(parsed)) {
+          results.push(parsed);
+          addLog(`[策略a] 在兄弟元素 <${sibling.tagName.toLowerCase()}> 中找到表格 (${parsed.length}行)`, 'debug');
+          // 继续查找后续连续的div.table-wrap（跨页合并）
+          let nextSibling = sibling.nextElementSibling;
+          let wrapCount = 0;
+          while (nextSibling && wrapCount < 10) {
+            if (nextSibling.classList && nextSibling.classList.contains('table-wrap')) {
+              const innerTable = nextSibling.querySelector('table');
+              if (innerTable) {
+                const parsed2 = parseTable(innerTable);
+                if (isValidTable(parsed2)) {
+                  results.push(parsed2);
+                  addLog(`[策略a-跨页] 找到连续表格片段`, 'debug');
+                }
+              }
+            } else if (nextSibling.tagName === 'TABLE') {
+              const parsed2 = parseTable(nextSibling);
+              if (isValidTable(parsed2)) {
+                results.push(parsed2);
+                addLog(`[策略a-跨页] 找到连续table元素`, 'debug');
+              }
+            } else {
+              break;
+            }
+            nextSibling = nextSibling.nextElementSibling;
+            wrapCount++;
+          }
+          break;
+        }
+      }
+      sibling = sibling.nextElementSibling;
+      siblingCount++;
+    }
+
+    if (results.length > 0) continue;
+
+    // 策略b: 在p标签的父元素中，从p之后的所有子元素中递归查找table
+    const parent = p.parentElement;
+    if (parent) {
+      const children = Array.from(parent.children);
+      const idx = children.indexOf(p);
+      for (let j = idx + 1; j < children.length && j < idx + 20; j++) {
+        const table = findTableInElement(children[j]);
+        if (table) {
+          const parsed = parseTable(table);
+          if (isValidTable(parsed)) {
+            results.push(parsed);
+            addLog(`[策略b] 在父元素子节点中找到表格`, 'debug');
+            break;
+          }
+        }
+      }
+    }
+
+    if (results.length > 0) continue;
+
+    // 策略c: 在p标签的祖先元素中向上查找，然后从对应位置往后找
+    let ancestor = parent ? parent.parentElement : null;
+    let ancestorDepth = 0;
+    while (ancestor && ancestorDepth < 5) {
+      const ancestorChildren = Array.from(ancestor.children);
+      const containerIdx = ancestorChildren.findIndex(child => {
+        return child === parent || child.contains(p);
+      });
+      if (containerIdx >= 0) {
+        for (let k = containerIdx + 1; k < ancestorChildren.length && k < containerIdx + 20; k++) {
+          const table = findTableInElement(ancestorChildren[k]);
+          if (table) {
+            const parsed = parseTable(table);
+            if (isValidTable(parsed)) {
+              results.push(parsed);
+              addLog(`[策略c] 在祖先元素子节点中找到表格`, 'debug');
+              break;
+            }
+          }
+        }
+        if (results.length > 0) break;
+      }
+      ancestor = ancestor.parentElement;
+      ancestorDepth++;
+    }
+
+    if (results.length > 0) continue;
+
+    // 策略d: 在整个文档中用compareDocumentPosition找p之后的第一个table
+    const allTables = doc.querySelectorAll('table');
+    for (const table of allTables) {
+      const position = p.compareDocumentPosition(table);
+      if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
+        const parsed = parseTable(table);
+        if (isValidTable(parsed)) {
+          results.push(parsed);
+          addLog(`[策略d] 在文档后续位置找到表格`, 'debug');
+          break;
+        }
+      }
+    }
+
+    if (results.length > 0) continue;
+
+    // 策略e: 全文搜索兜底 - 用正则在HTML源码中搜索包含目标关键词的表格
+    addLog(`[策略e] DOM结构查找失败，尝试全文正则搜索...`, 'warn');
+    const htmlSource = doc.documentElement.outerHTML;
+    const tableRegex = new RegExp(`(?:<p[^>]*>[^<]*${escapeRegex(tableName)}[^<]*</p>\\s*)(<table[\\s\\S]*?</table>)`, 'gi');
+    let regexMatch;
+    while ((regexMatch = tableRegex.exec(htmlSource)) !== null) {
+      try {
+        const tableHtml = regexMatch[1];
+        const tempDoc = new DOMParser().parseFromString(`<div>${tableHtml}</div>`, 'text/html');
+        const tableEl = tempDoc.querySelector('table');
+        if (tableEl) {
+          const parsed = parseTable(tableEl);
+          if (isValidTable(parsed)) {
+            results.push(parsed);
+            addLog(`[策略e] 全文正则搜索找到表格`, 'debug');
+            break;
+          }
+        }
+      } catch (e) {
+        // 正则解析失败，继续
+      }
+    }
+  }
+
+  return results;
+}
+
+/**
+ * 转义正则特殊字符
+ */
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * 在一个元素中查找table
+ */
+function findTableInElement(el) {
+  if (!el) return null;
+  if (el.tagName === 'TABLE') return el;
+  const tables = el.querySelectorAll('table');
+  if (tables.length > 0) return tables[0];
+  return null;
+}
+
+/**
+ * 检查解析出的表格是否有效（降低门槛：至少1行2列）
+ */
+function isValidTable(rows) {
+  if (!rows || rows.length < 1) return false;
+  let maxCols = 0;
+  for (const row of rows) {
+    if (row.length > maxCols) maxCols = row.length;
+  }
+  return maxCols >= 2;
+}
+
+/**
+ * 解析HTML table元素为二维数组
+ */
+function parseTable(tableEl) {
+  const rows = [];
+  const trs = tableEl.querySelectorAll('tr');
+  for (const tr of trs) {
+    const cells = [];
+    const tds = tr.querySelectorAll('td, th');
+    for (const td of tds) {
+      let text = td.textContent.trim().replace(/\s+/g, ' ');
+      const colspan = parseInt(td.getAttribute('colspan')) || 1;
+      cells.push(text);
+      for (let c = 1; c < colspan; c++) {
+        cells.push('');
+      }
+    }
+    rows.push(cells);
+  }
+  return rows;
+}
+
+// ==================== 步骤D: PDF下载（增强链接查找） ====================
+
+/**
+ * 从已获取的HTML中提取PDF链接（不需要再次请求页面）
+ */
+function extractPdfLinkFromHtml(html, reportUrl) {
+  // 优先级1: 正则搜索HTML源码中的.pdf链接（最可靠）
+  const pdfUrlRegex = /(?:href|src)\s*=\s*["']([^"']*\.pdf[^"']*)["']/gi;
+  let pdfMatch;
+  while ((pdfMatch = pdfUrlRegex.exec(html)) !== null) {
+    const pdfUrl = resolveUrl(pdfMatch[1], reportUrl);
+    if (pdfUrl) {
+      addLog(`找到PDF链接(正则搜索): ${pdfUrl}`, 'success');
+      return pdfUrl;
+    }
+  }
+
+  // 优先级2: 用DOM解析查找
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const links = doc.querySelectorAll('a');
+
+  // 文本包含"下载"的链接
+  for (const a of links) {
+    const text = a.textContent.trim();
+    const href = a.getAttribute('href') || '';
+    if (text.includes('下载') || text.includes('下载公告')) {
+      const pdfUrl = resolveUrl(href, reportUrl);
+      if (pdfUrl) {
+        addLog(`找到PDF链接(下载按钮): ${pdfUrl}`, 'success');
+        return pdfUrl;
+      }
+    }
+  }
+
+  // href包含.pdf的链接
+  for (const a of links) {
+    const href = a.getAttribute('href') || '';
+    if (href.includes('.pdf')) {
+      const pdfUrl = resolveUrl(href, reportUrl);
+      if (pdfUrl) {
+        addLog(`找到PDF链接(.pdf): ${pdfUrl}`, 'success');
+        return pdfUrl;
+      }
+    }
+  }
+
+  return null;
+}
+
+async function findPdfLink(reportUrl) {
+  addLog(`查找PDF下载链接...`, 'info');
+  try {
+    const html = await fetchViaProxy(reportUrl);
+    const pdfLink = extractPdfLinkFromHtml(html, reportUrl);
+    if (pdfLink) return pdfLink;
+    addLog(`未找到PDF下载链接`, 'warn');
+  } catch (e) {
+    addLog(`查找PDF链接失败: ${e.message}`, 'error');
+  }
+  return null;
+}
+
+/**
+ * 解析相对URL为绝对URL
+ */
+function resolveUrl(href, baseUrl) {
+  if (!href) return null;
+  let url = href;
+  if (url.startsWith('//')) {
+    url = 'https:' + url;
+  } else if (url.startsWith('/')) {
+    try {
+      const base = new URL(baseUrl);
+      url = base.origin + url;
+    } catch (e) {
+      url = `https://vip.stock.finance.sina.com.cn${url}`;
+    }
+  } else if (!url.startsWith('http')) {
+    try {
+      url = new URL(url, baseUrl).href;
+    } catch (e) {
+      return null;
+    }
+  }
+  return url;
+}
+
+/**
+ * 通过代理下载PDF并存储到collectedFiles
+ */
+async function downloadPdfViaProxy(pdfUrl, filename, company, year, reportType) {
+  addLog(`尝试通过代理下载PDF: ${filename}`, 'info');
+  try {
+    const blob = await fetchBinaryViaProxy(pdfUrl);
+    if (blob && blob.size > 1000) {
+      const fileObj = {
+        id: ++fileIdCounter,
+        name: filename,
+        type: 'pdf',
+        category: 'pdfs',
+        blob: blob,
+        url: pdfUrl,
+        size: blob.size,
+        timestamp: new Date().toISOString()
+      };
+      collectedFiles.push(fileObj);
+      updateFileCount();
+      addLog(`PDF下载成功并已保存: ${filename} (${formatFileSize(blob.size)})`, 'success');
+      return true;
+    }
+    addLog(`PDF下载内容过小，可能不是有效PDF`, 'warn');
+    return false;
+  } catch (e) {
+    addLog(`PDF下载异常: ${e.message}`, 'error');
+    return false;
+  }
+}
+
+/**
+ * 将PDF链接存入collectedFiles（标记为pdf-link类型，供手动下载）
+ */
+function savePdfLink(pdfUrl, filename, company, year, reportType) {
+  const fileObj = {
+    id: ++fileIdCounter,
+    name: filename,
+    type: 'pdf-link',
+    category: 'pdfs',
+    blob: null,
+    url: pdfUrl,
+    size: 0,
+    timestamp: new Date().toISOString(),
+    _pdfInfo: { company, year, reportType }
+  };
+  collectedFiles.push(fileObj);
+  updateFileCount();
+  addLog(`PDF链接已保存（需手动下载）: ${filename}`, 'info');
+}
+
+// ==================== Excel 生成 ====================
+function generateExcel(allData) {
+  addLog(`生成Excel文件...`, 'info');
+  const wb = XLSX.utils.book_new();
+
+  for (const [sheetName, sheetData] of Object.entries(allData)) {
+    const rows = [];
+    for (const [tableName, tableRows] of Object.entries(sheetData)) {
+      rows.push([tableName]);
+      if (tableRows && tableRows.length > 0) {
+        for (const row of tableRows) {
+          rows.push(row);
+        }
+      }
+      rows.push([]);
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // 自动调整列宽
+    if (rows.length > 0) {
+      const maxCols = Math.max(...rows.map(r => r.length));
+      const colWidths = [];
+      for (let c = 0; c < maxCols; c++) {
+        let maxLen = 10;
+        for (const row of rows) {
+          if (row[c] !== undefined) {
+            const len = String(row[c]).length;
+            if (len > maxLen) maxLen = len;
+          }
+        }
+        colWidths.push({ wch: Math.min(maxLen + 4, 60) });
+      }
+      ws['!cols'] = colWidths;
+    }
+
+    XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31));
+  }
+
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+  const filename = `财务报告数据_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+  const fileObj = {
+    id: ++fileIdCounter,
+    name: filename,
+    type: 'excel',
+    category: 'reports',
+    blob: blob,
+    url: null,
+    size: blob.size,
+    timestamp: new Date().toISOString()
+  };
+  collectedFiles.push(fileObj);
+  updateFileCount();
+
+  addLog(`Excel文件已生成并保存: ${filename} (${formatFileSize(blob.size)})`, 'success');
+  return filename;
+}
+
+// ==================== 文件管理面板 ====================
+
+function updateFileCount() {
+  document.getElementById('fileCount').textContent = collectedFiles.length;
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+function formatTimestamp(ts) {
+  const d = new Date(ts);
+  return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+/**
+ * 渲染文件列表（支持pdf-link类型）
+ */
+function renderFileList() {
+  const container = document.getElementById('fileListContainer');
+  const emptyEl = document.getElementById('fileEmpty');
+
+  if (collectedFiles.length === 0) {
+    container.innerHTML = '';
+    container.appendChild(emptyEl);
+    emptyEl.style.display = 'flex';
+    return;
+  }
+
+  // 按类型分组
+  const excelFiles = collectedFiles.filter(f => f.type === 'excel');
+  const pdfFiles = collectedFiles.filter(f => f.type === 'pdf');
+  const pdfLinkFiles = collectedFiles.filter(f => f.type === 'pdf-link');
+
+  let html = '';
+
+  if (excelFiles.length > 0) {
+    html += `<div class="file-group-title"><span class="group-icon">&#x1F4CA;</span> Excel报告 (${excelFiles.length})</div>`;
+    for (const file of excelFiles) {
+      html += renderFileItem(file);
+    }
+  }
+
+  if (pdfFiles.length > 0) {
+    html += `<div class="file-group-title"><span class="group-icon">&#x1F4C4;</span> PDF文件 (${pdfFiles.length})</div>`;
+    for (const file of pdfFiles) {
+      html += renderFileItem(file);
+    }
+  }
+
+  if (pdfLinkFiles.length > 0) {
+    html += `<div class="file-group-title"><span class="group-icon">&#x1F517;</span> PDF链接 - 需手动下载 (${pdfLinkFiles.length})</div>`;
+    for (const file of pdfLinkFiles) {
+      html += renderFileItem(file);
+    }
+  }
+
+  container.innerHTML = html;
+
+  // 绑定复选框事件
+  container.querySelectorAll('.file-item-checkbox').forEach(cb => {
+    cb.addEventListener('click', () => {
+      const fileId = parseInt(cb.dataset.fileId);
+      const file = collectedFiles.find(f => f.id === fileId);
+      if (file) {
+        file._selected = !file._selected;
+        cb.classList.toggle('checked', file._selected);
+        updateDownloadButton();
+      }
+    });
+  });
+
+  // 绑定文件名点击事件
+  container.querySelectorAll('.file-item-name.clickable').forEach(nameEl => {
+    nameEl.addEventListener('click', () => {
+      const fileId = parseInt(nameEl.dataset.fileId);
+      const file = collectedFiles.find(f => f.id === fileId);
+      if (!file) return;
+
+      if (file.type === 'pdf-link') {
+        // PDF链接类型：在新标签页打开
+        window.open(file.url, '_blank');
+      } else {
+        previewFile(fileId);
+      }
+    });
+  });
+}
+
+/**
+ * 渲染单个文件项
+ */
+function renderFileItem(file) {
+  let iconClass, iconText, metaText;
+
+  if (file.type === 'excel') {
+    iconClass = 'excel';
+    iconText = 'XLS';
+    metaText = `${formatFileSize(file.size)} | ${formatTimestamp(file.timestamp)}`;
+  } else if (file.type === 'pdf') {
+    iconClass = 'pdf';
+    iconText = 'PDF';
+    metaText = `${formatFileSize(file.size)} | ${formatTimestamp(file.timestamp)}`;
+  } else if (file.type === 'pdf-link') {
+    iconClass = 'pdf-link';
+    iconText = 'LNK';
+    metaText = `需手动下载 | ${formatTimestamp(file.timestamp)}`;
+  }
+
+  const checked = file._selected ? 'checked' : '';
+  const nameTitle = file.type === 'pdf-link'
+    ? `点击在新标签页打开: ${escapeHtml(file.url)}`
+    : escapeHtml(file.name);
+
+  return `
+    <div class="file-item">
+      <div class="file-item-checkbox ${checked}" data-file-id="${file.id}"></div>
+      <div class="file-item-icon ${iconClass}">${iconText}</div>
+      <div class="file-item-info">
+        <div class="file-item-name clickable" data-file-id="${file.id}" title="${nameTitle}">${escapeHtml(file.name)}</div>
+        <div class="file-item-meta">${metaText}</div>
+      </div>
+    </div>
+  `;
+}
+
+function selectAllFiles() {
+  collectedFiles.forEach(f => f._selected = true);
+  renderFileList();
+  updateDownloadButton();
+}
+
+function deselectAllFiles() {
+  collectedFiles.forEach(f => f._selected = false);
+  renderFileList();
+  updateDownloadButton();
+}
+
+function updateDownloadButton() {
+  const selectedCount = collectedFiles.filter(f => f._selected).length;
+  const btn = document.getElementById('btnDownloadZip');
+  btn.disabled = selectedCount === 0;
+  btn.textContent = selectedCount > 0 ? `下载选中文件 (${selectedCount})` : '下载选中文件 (ZIP)';
+}
+
+/**
+ * 下载选中文件为ZIP包
+ * Excel -> reports/, PDF -> pdfs/, PDF链接 -> pdf_links.txt
+ */
+async function downloadSelectedZip() {
+  const selectedFiles = collectedFiles.filter(f => f._selected);
+  if (selectedFiles.length === 0) return;
+
+  addLog(`正在打包 ${selectedFiles.length} 个文件为ZIP...`, 'info');
+
+  try {
+    const zip = new JSZip();
+    const pdfLinks = [];
+
+    for (const file of selectedFiles) {
+      const safeName = file.name.replace(/[\\/:*?"<>|]/g, '_');
+
+      if (file.type === 'pdf-link') {
+        // PDF链接类型：收集到pdf_links.txt
+        pdfLinks.push(`${file.name}: ${file.url}`);
+      } else if (file.blob) {
+        // Excel或PDF有实际blob数据
+        const folder = file.category === 'pdfs' ? 'pdfs/' : 'reports/';
+        zip.file(folder + safeName, file.blob);
+      }
+    }
+
+    // 如果有PDF链接，生成pdf_links.txt
+    if (pdfLinks.length > 0) {
+      const linkContent = `以下PDF文件因CORS限制无法自动下载，请手动访问链接：\n\n` +
+        pdfLinks.join('\n') +
+        `\n\n生成时间: ${new Date().toLocaleString('zh-CN')}\n`;
+      zip.file('pdf_links.txt', linkContent);
+      addLog(`ZIP中包含 ${pdfLinks.length} 个PDF手动下载链接 (pdf_links.txt)`, 'info');
+    }
+
+    const content = await zip.generateAsync({
+      type: 'blob',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 }
+    });
+
+    const zipName = `财务数据_${new Date().toISOString().slice(0, 10)}.zip`;
+    saveAs(content, zipName);
+    addLog(`ZIP文件已生成: ${zipName} (${formatFileSize(content.size)})`, 'success');
+  } catch (e) {
+    addLog(`ZIP打包失败: ${e.message}`, 'error');
+  }
+}
+
+// ==================== 文件预览 ====================
+
+async function previewFile(fileId) {
+  const file = collectedFiles.find(f => f.id === fileId);
+  if (!file) return;
+
+  const modal = document.getElementById('previewModal');
+  const title = document.getElementById('previewTitle');
+  const body = document.getElementById('previewBody');
+
+  title.textContent = file.name;
+  body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);"><span class="spinner"></span> 加载中...</div>';
+  modal.classList.add('active');
+
+  if (file.type === 'excel') {
+    try {
+      const data = new Uint8Array(await file.blob.arrayBuffer());
+      const workbook = XLSX.read(data, { type: 'array' });
+
+      if (workbook.SheetNames.length === 0) {
+        body.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);">Excel文件中没有工作表</div>';
+        return;
+      }
+
+      // 显示sheet数量提示
+      let html = `<div style="padding:8px 16px;background:var(--bg-secondary);border-bottom:1px solid var(--border-color);font-size:0.75rem;color:var(--text-muted);">
+        📊 共 ${workbook.SheetNames.length} 个工作表
+      </div>`;
+      
+      html += '<div class="excel-sheet-tabs">';
+      workbook.SheetNames.forEach((name, idx) => {
+        const displayName = name || `Sheet ${idx + 1}`;
+        html += `<button class="excel-sheet-tab ${idx === 0 ? 'active' : ''}" onclick="switchExcelSheet(this, '${escapeHtml(name)}', ${fileId})">${escapeHtml(displayName)}</button>`;
+      });
+      html += '</div>';
+      html += `<div class="excel-table-wrap" id="excelTableWrap"></div>`;
+      body.innerHTML = html;
+
+      renderExcelSheet(workbook.SheetNames[0], fileId);
+    } catch (e) {
+      body.innerHTML = `<div style="padding:40px;text-align:center;color:var(--error);">Excel预览失败: ${escapeHtml(e.message)}</div>`;
+    }
+  } else if (file.type === 'pdf') {
+    // iframe无法正确加载blob PDF，改为新窗口打开
+    const blobUrl = URL.createObjectURL(file.blob);
+    body.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;">
+      <div style="font-size:3rem;">📄</div>
+      <div style="color:var(--text-secondary);font-size:0.9rem;">PDF文件已准备好</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;">文件大小: ${formatFileSize(file.size)}</div>
+      <button onclick="window.open('${blobUrl}', '_blank')" style="margin-top:8px;padding:10px 28px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);cursor:pointer;font-size:0.9rem;font-family:inherit;">在新窗口中打开PDF</button>
+    </div>`;
+  } else if (file.type === 'pdf-link') {
+    body.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;">
+      <div style="font-size:3rem;">🔗</div>
+      <div style="color:var(--text-secondary);font-size:0.9rem;">此PDF需要手动下载</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;word-break:break-all;max-width:80%;text-align:center;">${escapeHtml(file.url)}</div>
+      <a href="${file.url}" target="_blank" rel="noopener" style="margin-top:8px;padding:10px 28px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);cursor:pointer;font-size:0.9rem;text-decoration:none;">在新窗口中打开链接</a>
+    </div>`;
+  }
+}
+
+function switchExcelSheet(tabEl, sheetName, fileId) {
+  tabEl.parentElement.querySelectorAll('.excel-sheet-tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  renderExcelSheet(sheetName, fileId);
+}
+
+function renderExcelSheet(sheetName, fileId) {
+  const file = collectedFiles.find(f => f.id === fileId);
+  if (!file) return;
+
+  const wrap = document.getElementById('excelTableWrap');
+  if (!wrap) return;
+
+  const readAndRender = async () => {
+    try {
+      const arrayData = new Uint8Array(await file.blob.arrayBuffer());
+      const workbook = XLSX.read(arrayData, { type: 'array' });
+      const ws = workbook.Sheets[sheetName];
+      if (!ws) {
+        wrap.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);">工作表不存在</div>';
+        return;
+      }
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+      if (rows.length === 0) {
+        wrap.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);">工作表为空</div>';
+        return;
+      }
+
+      const maxRows = Math.min(rows.length, 500);
+      let html = '<table class="excel-table">';
+
+      html += '<thead><tr>';
+      const headerRow = rows[0] || [];
+      for (let c = 0; c < headerRow.length; c++) {
+        html += `<th>${escapeHtml(String(headerRow[c]))}</th>`;
+      }
+      html += '</tr></thead><tbody>';
+
+      for (let r = 1; r < maxRows; r++) {
+        html += '<tr>';
+        const row = rows[r] || [];
+        for (let c = 0; c < headerRow.length; c++) {
+          const val = c < row.length ? String(row[c]) : '';
+          html += `<td title="${escapeHtml(val)}">${escapeHtml(val)}</td>`;
+        }
+        html += '</tr>';
+      }
+
+      html += '</tbody></table>';
+
+      if (rows.length > maxRows) {
+        html += `<div style="padding:10px;text-align:center;color:var(--text-muted);font-size:0.8rem;">仅显示前 ${maxRows} 行，共 ${rows.length} 行</div>`;
+      }
+
+      wrap.innerHTML = html;
+    } catch (e) {
+      wrap.innerHTML = `<div style="padding:40px;text-align:center;color:var(--error);">渲染失败: ${escapeHtml(e.message)}</div>`;
+    }
+  };
+
+  readAndRender();
+}
+
+function closePreviewModal() {
+  const modal = document.getElementById('previewModal');
+  modal.classList.remove('active');
+  const body = document.getElementById('previewBody');
+  const iframe = body.querySelector('iframe');
+  if (iframe) {
+    iframe.src = '';
+  }
+  body.innerHTML = '';
+}
+
+// 点击遮罩关闭模态框
+document.getElementById('previewModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    closePreviewModal();
+  }
+});
+
+// ESC键关闭模态框
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closePreviewModal();
+  }
+});
+
+// ==================== 主流程 ====================
+async function startFetching() {
+  if (isRunning) return;
+
+  const config = getConfig();
+  // 保存配置到localStorage
+  saveConfig();
+  
+  if (config.companies.length === 0) {
+    addLog('请输入至少一个公司名称', 'error');
+    return;
+  }
+  if (config.years.length === 0) {
+    addLog('请输入至少一个年份', 'error');
+    return;
+  }
+  if (config.targetTables.length === 0) {
+    addLog('请输入至少一个目标表格名称', 'error');
+    return;
+  }
+  if (config.reportTypes.length === 0) {
+    addLog('请选择至少一种报告类型', 'error');
+    return;
+  }
+
+  isRunning = true;
+  shouldStop = false;
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnStop').disabled = false;
+
+  // 初始化代理健康状态
+  initProxyHealth();
+
+  addLog('========== 开始采集 ==========', 'info');
+  addLog(`公司: ${config.companies.join(', ')}`, 'info');
+  addLog(`年份: ${config.years.join(', ')}`, 'info');
+  addLog(`报告类型: ${config.reportTypes.map(t => reportTypeNames[t] || t).join(', ')}`, 'info');
+  addLog(`目标表格: ${config.targetTables.join(', ')}`, 'info');
+  addLog(`PDF下载: ${config.needPdf ? '是' : '否'}`, 'info');
+  addLog(`可用文本代理: ${getAvailableProxies('text').length} / ${textProxies.length}`, 'info');
+  addLog(`可用二进制代理: ${getAvailableProxies('binary').length} / ${binaryProxies.length}`, 'info');
+
+  initCompanyStatusList(config.companies);
+
+  const totalTasks = config.companies.length * config.reportTypes.length;
+  let completedTasks = 0;
+  const allExcelData = {};
+
+  try {
+    for (const company of config.companies) {
+      if (shouldStop) break;
+
+      updateCompanyStatus(company, 'running', '搜索股票代码...');
+      setProgress(`正在处理: ${company}`, completedTasks, totalTasks);
+
+      let stockCode;
+      try {
+        stockCode = await searchStockCode(company);
+      } catch (e) {
+        addLog(`公司 ${company} 股票代码搜索失败: ${e.message}`, 'error');
+        updateCompanyStatus(company, 'error', '股票代码搜索失败');
+        completedTasks += config.reportTypes.length;
+        setProgress(`处理完成: ${company}`, completedTasks, totalTasks);
+        continue;
+      }
+
+      updateCompanyStatus(company, 'running', `股票代码: ${stockCode}`);
+
+      for (const rt of config.reportTypes) {
+        if (shouldStop) break;
+
+        const rtName = reportTypeNames[rt] || rt;
+        const sheetKey = `${company}_${rtName}`;
+        updateCompanyStatus(company, 'running', `获取${rtName}...`);
+
+        try {
+          // 步骤B: 获取公告列表
+          const announcements = await getAnnouncementList(stockCode, rt, config.years);
+          if (announcements.length === 0) {
+            addLog(`${company} - ${rtName}: 无匹配公告`, 'warn');
+            allExcelData[sheetKey] = {};
+            completedTasks++;
+            setProgress(`正在处理: ${company}`, completedTasks, totalTasks);
+            continue;
+          }
+
+          // 合并所有年份公告的表格数据
+          const mergedTables = {};
+
+          for (const ann of announcements) {
+            if (shouldStop) break;
+
+            addLog(`处理公告: ${ann.title}`, 'info');
+            updateCompanyStatus(company, 'running', `爬取: ${ann.title.substring(0, 20)}...`);
+
+            // 步骤C: 爬取报告表格
+            const tables = await fetchReportTables(ann.url, config.targetTables, config.nameLength);
+
+            // 提取PDF链接（从已获取的页面中，避免重复请求）
+            const pdfUrlFromPage = tables['__pdfLink__'];
+            delete tables['__pdfLink__'];
+
+            // 合并到当前报告类型的数据中
+            for (const [tableName, tableRows] of Object.entries(tables)) {
+              if (!mergedTables[tableName]) {
+                mergedTables[tableName] = [];
+              }
+              if (tableRows && tableRows.length > 0) {
+                if (mergedTables[tableName].length === 0) {
+                  mergedTables[tableName] = tableRows;
+                } else {
+                  const lastRow = mergedTables[tableName][mergedTables[tableName].length - 1];
+                  const firstNewRow = tableRows[0];
+                  if (isSimilarRow(lastRow, firstNewRow)) {
+                    mergedTables[tableName] = mergedTables[tableName].concat(tableRows.slice(1));
+                  } else {
+                    mergedTables[tableName] = mergedTables[tableName].concat([[], ...tableRows]);
+                  }
+                }
+              }
+            }
+
+            // 步骤D: PDF（可选，使用已提取的链接，不再重复请求页面）
+            if (config.needPdf && pdfUrlFromPage) {
+              try {
+                const pdfFilename = `${company}_${ann.year}_${rtName}_${Date.now()}.pdf`;
+                const downloaded = await downloadPdfViaProxy(pdfUrlFromPage, pdfFilename, company, ann.year, rtName);
+                if (!downloaded) {
+                  // 代理下载失败，保存为PDF链接供手动下载
+                  savePdfLink(pdfUrlFromPage, pdfFilename, company, ann.year, rtName);
+                }
+              } catch (e) {
+                addLog(`PDF处理失败: ${e.message}`, 'warn');
+              }
+            } else if (config.needPdf && !pdfUrlFromPage) {
+              addLog(`未在报告页面中找到PDF链接`, 'warn');
+            }
+
+            // 报告间延迟
+            if (!shouldStop) {
+              addLog(`等待随机延迟...`, 'debug');
+              await randomDelay(3000, 8000);
+            }
+          }
+
+          allExcelData[sheetKey] = mergedTables;
+
+        } catch (e) {
+          addLog(`${company} - ${rtName} 处理失败: ${e.message}`, 'error');
+          allExcelData[sheetKey] = {};
+        }
+
+        completedTasks++;
+        setProgress(`正在处理: ${company}`, completedTasks, totalTasks);
+
+        // 报告类型间延迟
+        if (!shouldStop) {
+          await randomDelay(3000, 8000);
+        }
+      }
+
+      updateCompanyStatus(company, 'success', '完成');
+      // 公司间延迟
+      if (!shouldStop) {
+        await randomDelay(5000, 10000);
+      }
+    }
+
+    // 生成Excel
+    if (Object.keys(allExcelData).length > 0) {
+      setProgress('生成Excel文件...', completedTasks, totalTasks);
+      generateExcel(allExcelData);
+    }
+
+    // 统计结果
+    const excelCount = collectedFiles.filter(f => f.type === 'excel').length;
+    const pdfCount = collectedFiles.filter(f => f.type === 'pdf').length;
+    const pdfLinkCount = collectedFiles.filter(f => f.type === 'pdf-link').length;
+
+    addLog(`========== 采集完成 ==========`, shouldStop ? 'warn' : 'success');
+    addLog(`结果: ${excelCount} 个Excel, ${pdfCount} 个PDF, ${pdfLinkCount} 个PDF链接(需手动下载)`, 'info');
+
+    if (pdfLinkCount > 0) {
+      addLog(`提示: PDF链接文件可在"文件管理"面板中点击名称在新标签页打开`, 'info');
+    }
+
+    if (shouldStop) {
+      addLog('采集已被用户停止', 'warn');
+      setProgress('已停止', completedTasks, totalTasks);
+    } else {
+      setProgress('全部完成', completedTasks, totalTasks);
+    }
+
+  } catch (e) {
+    addLog(`全局错误: ${e.message}`, 'error');
+    setProgress('出错', completedTasks, totalTasks);
+  }
+
+  isRunning = false;
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnStop').disabled = true;
+}
+
+function stopFetching() {
+  shouldStop = true;
+  addLog('正在停止采集...', 'warn');
+  document.getElementById('btnStop').disabled = true;
+}
+
+// ==================== 初始化 ====================
+initProxyHealth();
+addLog('财务报告数据采集工具 v3.0 已就绪', 'info');
+addLog('请配置参数后点击"开始采集"', 'info');
+addLog('提示: 本版本升级了6个CORS代理，支持智能轮换和自动冷却', 'info');
+addLog('提示: 请求间有随机延迟(3-15秒)，模拟正常访问避免被封', 'info');
+addLog('提示: 采集到的文件可在"文件管理"面板中预览和打包下载', 'info');
+addLog('提示: PDF下载失败的链接会保存为"PDF链接"，可点击在新标签页手动下载', 'info');
+</script>
+</body>
+</html>
