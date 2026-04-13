@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://haohuaZhang.github.io/financial-data-fetcher/sitemap.xml
