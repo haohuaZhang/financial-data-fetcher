@@ -7,19 +7,24 @@ function openCompareModal() {
   }
   const modal = document.getElementById('compareModal');
   const body = document.getElementById('compareBody');
+  if (!modal || !body) return;
   body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--text-muted);"><span class="spinner"></span> ' + t('file-preview-loading') + '</div>';
   modal.classList.add('active');
   performCompare(selectedExcelFiles);
 }
 
 function closeCompareModal() {
-  document.getElementById('compareModal').classList.remove('active');
+  const modal = document.getElementById('compareModal');
+  if (modal) modal.classList.remove('active');
 }
 
 // 点击遮罩关闭对比模态框
-document.getElementById('compareModal').addEventListener('click', function(e) {
-  if (e.target === this) closeCompareModal();
-});
+const compareModalEl = document.getElementById('compareModal');
+if (compareModalEl) {
+  compareModalEl.addEventListener('click', function(e) {
+    if (e.target === this) closeCompareModal();
+  });
+}
 
 async function performCompare(files) {
   const body = document.getElementById('compareBody');

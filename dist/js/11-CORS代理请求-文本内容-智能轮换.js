@@ -59,9 +59,6 @@ async function fetchViaProxy(url, retries = 3) {
     proxyNames.set(fn, getProxyName(fn));
   }
   
-  // 随机打乱顺序
-  proxyFns = shuffleArray(proxyFns);
-  
   for (let attempt = 1; attempt <= retries; attempt++) {
     // 指数退避延迟
     const backoffDelay = Math.pow(2, attempt - 1) * 1000; // 1秒, 2秒, 4秒

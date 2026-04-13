@@ -1,5 +1,5 @@
 // ==================== 步骤C: 爬取报告表格 ====================
-async function fetchReportTables(reportUrl, targetTables, nameLengthLimit) {
+async function fetchReportTables(reportUrl, targetTables, nameLengthLimit, needPdf = false) {
   addLog(`${t('log-fetch-tables')}: ${reportUrl.substring(0, 80)}...`, 'info');
   const html = await fetchViaProxy(reportUrl);
   const parser = new DOMParser();
@@ -47,10 +47,12 @@ async function fetchReportTables(reportUrl, targetTables, nameLengthLimit) {
     }
   }
 
-  // 同时提取PDF链接（避免重复请求报告页面）
-  const pdfLink = extractPdfLinkFromHtml(html, reportUrl);
-  if (pdfLink) {
-    allTables['__pdfLink__'] = pdfLink;
+  // 仅在需要PDF时提取链接，避免无关请求和日志
+  if (needPdf) {
+    const pdfLink = extractPdfLinkFromHtml(html, reportUrl);
+    if (pdfLink) {
+      allTables['__pdfLink__'] = pdfLink;
+    }
   }
 
   return allTables;

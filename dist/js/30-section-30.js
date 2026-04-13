@@ -1,11 +1,7 @@
 // ==================== 初始化 ===
 initProxyHealth();
 // 页面加载完成后应用主题
-requestAnimationFrame(() => {
-  requestAnimationFrame(() => {
-    applyTheme(currentThemeId);
-  });
-});
+applyTheme(currentThemeId);
 addLog(t('log-ready'), 'info');
 addLog(t('log-click-start'), 'info');
 addLog(t('log-proxy-info'), 'info');

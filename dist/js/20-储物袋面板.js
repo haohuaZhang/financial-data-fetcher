@@ -1,7 +1,64 @@
 // ==================== 🎒 储物袋面板 ====================
+const fileFilterState = { query: '', type: 'all' };
+
+function normalizeFileSearchText(file) {
+  return [
+    file.name,
+    file.type,
+    file.category,
+    file.url,
+    file._company,
+    file._year,
+    file._reportType,
+    file._sheetNames && file._sheetNames.join(' '),
+    file._tableNames && file._tableNames.join(' '),
+  ].filter(Boolean).join(' ').toLowerCase();
+}
+
+function getVisibleFiles() {
+  const query = fileFilterState.query.trim().toLowerCase();
+  return collectedFiles.filter(file => {
+    if (fileFilterState.type !== 'all' && file.type !== fileFilterState.type) return false;
+    if (!query) return true;
+    return normalizeFileSearchText(file).includes(query);
+  });
+}
+
+function updateFileFilterSummary(visibleFiles) {
+  const summary = document.getElementById('fileFilterSummary');
+  if (!summary) return;
+  summary.textContent = `${visibleFiles.length} / ${collectedFiles.length}`;
+}
+
+function bindFileFilterEvents() {
+  const searchInput = document.getElementById('fileSearchInput');
+  const typeFilter = document.getElementById('fileTypeFilter');
+  if (searchInput && !searchInput.dataset.bound) {
+    searchInput.dataset.bound = '1';
+    searchInput.addEventListener('input', function() {
+      fileFilterState.query = this.value;
+      renderFileList();
+    });
+  }
+  if (typeFilter && !typeFilter.dataset.bound) {
+    typeFilter.dataset.bound = '1';
+    typeFilter.addEventListener('change', function() {
+      fileFilterState.type = this.value;
+      renderFileList();
+    });
+  }
+}
+
 
 function updateFileCount() {
-  document.getElementById('fileCount').textContent = collectedFiles.length;
+  const badge = document.getElementById('fileCount');
+  if (badge) badge.textContent = collectedFiles.length;
+  const panelFiles = document.getElementById('panelFiles');
+  if (panelFiles && panelFiles.classList.contains('active')) {
+    renderFileList();
+  } else {
+    updateFileFilterSummary(getVisibleFiles());
+  }
 }
 
 function formatFileSize(bytes) {
@@ -20,17 +77,34 @@ function formatTimestamp(ts) {
  */
 function renderFileList() {
   const container = document.getElementById('fileListContainer');
+  bindFileFilterEvents();
+  const searchEl = document.getElementById('fileSearchInput');
+  const typeEl = document.getElementById('fileTypeFilter');
+  const summaryEl = document.getElementById('fileFilterSummary');
+  const searchText = (searchEl && searchEl.value || '').trim().toLowerCase();
+  const typeFilter = typeEl ? typeEl.value : 'all';
+  let files = collectedFiles;
 
-  if (collectedFiles.length === 0) {
+  if (searchText) {
+    files = files.filter(f => {
+      const extra = [f.name, f.url, f._company, f._year, f._reportType, f.category, f.type].filter(Boolean).join(' ').toLowerCase();
+      return extra.includes(searchText);
+    });
+  }
+  if (typeFilter !== 'all') files = files.filter(f => f.type === typeFilter);
+
+  if (summaryEl) summaryEl.textContent = `共 ${files.length} 项 / 原始 ${collectedFiles.length} 项`;
+
+  if (files.length === 0) {
     // BUG-A07: 重新创建fileEmpty元素，避免被innerHTML覆盖后丢失
     container.innerHTML = '<div class="file-empty" id="fileEmpty"><div class="file-empty-icon">&#x1F4C2;</div><div data-i18n="file-empty-title">' + t('file-empty-title') + '</div><div style="font-size:0.75rem;" data-i18n="file-empty-hint">' + t('file-empty-hint') + '</div></div>';
     return;
   }
 
   // 按类型分组
-  const excelFiles = collectedFiles.filter(f => f.type === 'excel');
-  const pdfFiles = collectedFiles.filter(f => f.type === 'pdf');
-  const pdfLinkFiles = collectedFiles.filter(f => f.type === 'pdf-link');
+  const excelFiles = files.filter(f => f.type === 'excel');
+  const pdfFiles = files.filter(f => f.type === 'pdf');
+  const pdfLinkFiles = files.filter(f => f.type === 'pdf-link');
 
   let html = '';
 
@@ -56,10 +130,12 @@ function renderFileList() {
   }
 
   container.innerHTML = html;
+  updateFileFilterSummary(files);
 
   // 绑定复选框事件
   container.querySelectorAll('.file-item-checkbox').forEach(cb => {
-    cb.addEventListener('click', () => {
+    cb.addEventListener('click', (e) => {
+      e.stopPropagation();
       const fileId = parseInt(cb.dataset.fileId);
       const file = collectedFiles.find(f => f.id === fileId);
       if (file) {
@@ -70,21 +146,20 @@ function renderFileList() {
     });
   });
 
-  // 绑定文件名点击事件
-  container.querySelectorAll('.file-item-name.clickable').forEach(nameEl => {
-    nameEl.addEventListener('click', () => {
+  // 绑定文件项点击事件
+  container.querySelectorAll('.file-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('.file-item-checkbox')) return;
+      const nameEl = item.querySelector('.file-item-name.clickable');
+      if (!nameEl) return;
       const fileId = parseInt(nameEl.dataset.fileId);
       const file = collectedFiles.find(f => f.id === fileId);
       if (!file) return;
-
-      if (file.type === 'pdf-link') {
-        // PDF链接类型：在新标签页打开
-        window.open(file.url, '_blank');
-      } else {
-        previewFile(fileId);
-      }
+      previewFile(fileId);
     });
   });
+
+  if (typeof refreshFinanceInsights === 'function') refreshFinanceInsights();
 }
 
 /**
@@ -109,7 +184,7 @@ function renderFileItem(file) {
 
   const checked = file._selected ? 'checked' : '';
   const nameTitle = file.type === 'pdf-link'
-    ? `点击在新标签页打开: ${escapeHtml(file.url)}`
+    ? `点击在页面内预览: ${escapeHtml(file.url)}`
     : escapeHtml(file.name);
 
   return `
@@ -140,7 +215,7 @@ function updateDownloadButton() {
   const selectedCount = collectedFiles.filter(f => f._selected).length;
   const btn = document.getElementById('btnDownloadZip');
   btn.disabled = selectedCount === 0;
-  btn.textContent = selectedCount > 0 ? `📦 ${t('btn-download-zip').replace(' (ZIP)','')} (${selectedCount})` : t('btn-download-zip');
+  btn.innerHTML = selectedCount > 0 ? `<span data-i18n="btn-download-zip">📦 ${t('btn-download-zip').replace(' (ZIP)','')} (${selectedCount})</span>` : `<span data-i18n="btn-download-zip">${t('btn-download-zip')}</span>`;
 }
 
 /**

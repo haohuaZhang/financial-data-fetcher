@@ -105,7 +105,7 @@ async function startFetching() {
               addLog(`${t('log-reading-report')}: ${ann.title}`, 'info');
               updateCompanyStatus(company, 'running', `${t('log-decrypting')}: ${ann.title.substring(0, 20)}...`);
 
-              const tables = await fetchReportTables(ann.url, config.targetTables, config.nameLength);
+              const tables = await fetchReportTables(ann.url, config.targetTables, config.nameLength, config.needPdf);
               const pdfUrlFromPage = tables['__pdfLink__'];
               delete tables['__pdfLink__'];
 
@@ -180,7 +180,7 @@ async function startFetching() {
               addLog(`${t('log-reading-report')}: ${ann.title}`, 'info');
               updateCompanyStatus(company, 'running', `${t('log-decrypting')}: ${ann.title.substring(0, 20)}...`);
 
-              const tables = await fetchReportTables(ann.url, config.targetTables, config.nameLength);
+              const tables = await fetchReportTables(ann.url, config.targetTables, config.nameLength, config.needPdf);
 
               const pdfUrlFromPage = tables['__pdfLink__'];
               delete tables['__pdfLink__'];
@@ -250,7 +250,9 @@ async function startFetching() {
     // 生成Excel
     if (Object.keys(allExcelData).length > 0) {
       setProgress(t('log-excel-gen'), completedTasks, totalTasks);
+      window.__latestExcelData = allExcelData;
       generateExcel(allExcelData);
+      if (typeof refreshFinanceInsights === 'function') refreshFinanceInsights();
     }
 
     // 统计结果

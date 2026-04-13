@@ -1,0 +1,28 @@
+
+
+<div class="theme-bg-deco" aria-hidden="true">
+  <div class="theme-bg-deco-inner"></div>
+</div>
+
+<!-- ==================== 暗号验证弹框 ==================== -->
+<div class="secret-modal-overlay" id="secretModal">
+  <div class="secret-modal">
+    <div class="secret-icon">🔐</div>
+    <div class="secret-hint" data-i18n="secret-hint">唱跳rap背带裤</div>
+    <input type="text" class="secret-input" id="secretInput" data-i18n-placeholder="secret-placeholder" placeholder="请输入暗号" autocomplete="off">
+    <div class="secret-channel"><span data-i18n="secret-channel">暗号渠道：关注微信公众号</span> <span data-i18n="secret-channel-name">蒙西求职记</span></div>
+    <div class="secret-error" id="secretError"></div>
+    <div class="secret-actions">
+      <button class="btn-skip" onclick="skipSecret()" data-i18n="secret-btn-skip">跳过</button>
+      <button class="btn-confirm" onclick="verifySecret()" data-i18n="secret-btn-confirm">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 散修提示条 ==================== -->
+<div class="sanxiu-banner" id="sanxiuBanner">
+  ⚠️ 当前为访客模式，公司列表仅处理第一个公司，年份也只处理第一个年份，报告类型只能选择一个
+</div>
+
+<!-- ==================== 底部Toast ==================== -->
+<div class="bottom-toast" id="bottomToast"></div>

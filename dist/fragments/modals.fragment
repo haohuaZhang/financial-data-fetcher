@@ -1,0 +1,21 @@
+<!-- ==================== 预览模态框 ==================== -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal-container">
+    <div class="modal-header">
+      <div class="modal-title" id="previewTitle">预览</div>
+      <button class="modal-close" type="button" onclick="closePreviewModal()">×</button>
+    </div>
+    <div class="modal-body" id="previewBody"></div>
+  </div>
+</div>
+
+<!-- ==================== 对比模态框 ==================== -->
+<div class="modal-overlay" id="compareModal">
+  <div class="modal-container" style="max-width: 96vw; width: 96vw;">
+    <div class="modal-header">
+      <div class="modal-title" id="compareTitle">数据对比</div>
+      <button class="modal-close" type="button" onclick="closeCompareModal()">×</button>
+    </div>
+    <div class="modal-body" id="compareBody" style="overflow:auto;padding:16px;"></div>
+  </div>
+</div>

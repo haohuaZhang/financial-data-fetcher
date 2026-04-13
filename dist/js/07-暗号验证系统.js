@@ -9,12 +9,6 @@ function checkSecretStatus() {
   if (verified === 'true') {
     isMember = true;
     document.getElementById('secretModal').classList.add('hidden');
-    // 每分钟检查一次是否过期
-    setInterval(() => {
-      if (isMember && checkSecretExpiry()) {
-        // 过期后清除定时器不需要，因为checkSecretExpiry已经处理了
-      }
-    }, 60000);
     return;
   }
   // 显示弹框
@@ -73,10 +67,6 @@ function verifySecret() {
     sessionStorage.setItem('secretVerifiedTime', Date.now().toString());
     document.getElementById('secretModal').classList.add('hidden');
     showBottomToast(t('secret-toast-welcome'));
-    // 启动过期检查定时器
-    setInterval(() => {
-      if (isMember && checkSecretExpiry()) {}
-    }, 60000);
   } else {
     // 暗号错误
     errorEl.textContent = t('secret-error-wrong');

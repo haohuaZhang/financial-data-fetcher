@@ -1,0 +1,19 @@
+<!-- ==================== 顶部导航栏 ==================== -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-icon">$</div>
+    <div class="header-title" data-i18n="page-title">财务报告数据采集工具</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="header-badge" data-i18n="nav-badge">v3.1 | 纯浏览器运行</div>
+    <div class="theme-switcher">
+      <select id="themeSelector" onchange="applyTheme(this.value)">
+        <option value="normal">📊 普通模式</option>
+        <option value="xianxia">🔮 修仙模式</option>
+        <option value="creepy">👁️ 诡异模式</option>
+        <option value="doomsday">⚡ 末日模式</option>
+        <option value="fantasy">🌟 玄幻模式</option>
+      </select>
+    </div>
+  </div>
+</div>

@@ -89,11 +89,21 @@ function resolveUrl(href, baseUrl) {
 /**
  * 通过代理下载PDF并存储到collectedFiles
  */
+function hasExistingPdfRecord(pdfUrl) {
+  return collectedFiles.some(file =>
+    (file.type === 'pdf' || file.type === 'pdf-link') && file.url === pdfUrl
+  );
+}
+
 async function downloadPdfViaProxy(pdfUrl, filename, company, year, reportType) {
   addLog(`${t('log-pdf-download')}: ${filename}`, 'info');
   try {
+    if (hasExistingPdfRecord(pdfUrl)) {
+      addLog(`${t('log-pdf-success')}: ${filename}（已存在，跳过重复保存）`, 'info');
+      return true;
+    }
     const blob = await fetchBinaryViaProxy(pdfUrl);
-    if (blob && blob.size > 1000) {
+    if (blob && await isValidPdfBlob(blob)) {
       const fileObj = {
         id: ++fileIdCounter,
         name: filename,
@@ -102,10 +112,14 @@ async function downloadPdfViaProxy(pdfUrl, filename, company, year, reportType) 
         blob: blob,
         url: pdfUrl,
         size: blob.size,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        _company: company,
+        _year: year,
+        _reportType: reportType
       };
       collectedFiles.push(fileObj);
       updateFileCount();
+      if (typeof refreshFinanceInsights === 'function') refreshFinanceInsights();
       addLog(`${t('log-pdf-success')}: ${filename} (${formatFileSize(blob.size)})`, 'success');
       return true;
     }
@@ -121,6 +135,10 @@ async function downloadPdfViaProxy(pdfUrl, filename, company, year, reportType) 
  * 将PDF链接存入collectedFiles（标记为pdf-link类型，供手动下载）
  */
 function savePdfLink(pdfUrl, filename, company, year, reportType) {
+  if (hasExistingPdfRecord(pdfUrl)) {
+    addLog(`${t('log-pdf-link-saved')}: ${filename}（已存在，跳过重复保存）`, 'info');
+    return;
+  }
   const fileObj = {
     id: ++fileIdCounter,
     name: filename,
@@ -130,9 +148,13 @@ function savePdfLink(pdfUrl, filename, company, year, reportType) {
     url: pdfUrl,
     size: 0,
     timestamp: new Date().toISOString(),
-    _pdfInfo: { company, year, reportType }
+    _pdfInfo: { company, year, reportType },
+    _company: company,
+    _year: year,
+    _reportType: reportType
   };
   collectedFiles.push(fileObj);
   updateFileCount();
+  if (typeof refreshFinanceInsights === 'function') refreshFinanceInsights();
   addLog(`${t('log-pdf-link-saved')}: ${filename}`, 'info');
 }

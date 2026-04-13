@@ -121,24 +121,13 @@ function markProxyFailed(proxyFn, reason) {
 function getAvailableProxies(type) {
   const now = Date.now();
   const sourceList = type === 'binary' ? binaryProxies : textProxies;
-  const available = sourceList.filter(fn => {
+  return sourceList.filter(fn => {
     const h = proxyHealth.get(fn);
     if (!h) return true;
     // 检查冷却是否已过期
     if (h.cooldownUntil > now) return false;
     return true;
   });
-
-  // 代理缓存优化：按成功率排序，优先使用成功率高的代理
-  available.sort((a, b) => {
-    const ha = proxyHealth.get(a);
-    const hb = proxyHealth.get(b);
-    const rateA = ha ? (ha.successCount / Math.max(ha.successCount + ha.failCount, 1)) : 0.5;
-    const rateB = hb ? (hb.successCount / Math.max(hb.successCount + hb.failCount, 1)) : 0.5;
-    return rateB - rateA; // 降序排列
-  });
-
-  return available;
 }
 
 /**
@@ -164,7 +153,7 @@ function renderProxyStatus() {
   const now = Date.now();
 
   // 只显示文本代理（主要使用的）
-  for (const fn of textProxies) {
+  for (const [idx, fn] of textProxies.entries()) {
     const h = proxyHealth.get(fn);
     if (!h) continue;
 
@@ -192,6 +181,7 @@ function renderProxyStatus() {
     const displayName = getProxyName(fn);
     html += `
       <div class="proxy-status-item">
+        <span class="proxy-order">${idx + 1}</span>
         <span class="proxy-dot ${dotClass}"></span>
         <span class="proxy-name" title="${displayName}">${displayName}</span>
         <span class="proxy-stats">${statusText} | ${h.successCount}S/${h.failCount}F</span>
@@ -202,5 +192,3 @@ function renderProxyStatus() {
   container.innerHTML = html;
 }
 
-// 定时刷新弟子状态面板（更新冷却倒计时）
-setInterval(renderProxyStatus, 2000);

@@ -50,11 +50,14 @@ function generateExcel(allData) {
     blob: blob,
     url: null,
     size: blob.size,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    _sheetNames: Object.keys(allData || {}),
+    _tableNames: Object.entries(allData || {}).flatMap(([, sheetData]) => Object.keys(sheetData || {}))
   };
   collectedFiles.push(fileObj);
   updateFileCount();
-
+  window.__latestExcelData = allData;
+  if (typeof refreshFinanceInsights === 'function') refreshFinanceInsights();
   addLog(`${t('log-excel-done')}: ${filename} (${formatFileSize(blob.size)})`, 'success');
   return filename;
 }

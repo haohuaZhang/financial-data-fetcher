@@ -17,10 +17,10 @@ const THEMES = {
     },
     texts: {
       'page-title': '财务报告数据采集工具', 'nav-badge': 'v3.1 | 纯浏览器运行',
-      'section-company': '公司列表', 'label-company': '公司名称（每行一个）',
+      'section-company': '公司列表', 'label-company': '公司名称（逗号分隔）',
       'section-year': '报告年份', 'label-year': '年份（逗号分隔）',
       'hint-year': '支持多个年份，用逗号或空格分隔',
-      'section-table': '目标表格', 'label-table': '表格名称（每行一个）',
+      'section-table': '目标表格', 'label-table': '表格名称（逗号分隔）',
       'label-name-length': '表格名称匹配长度限制',
       'hint-name-length': '只匹配名称长度小于此值的标签',
       'section-report': '报告类型', 'report-ndbg': '年报', 'report-zqbg': '中报',
@@ -32,7 +32,7 @@ const THEMES = {
       'switch-custom-proxy': '使用自定义代理',
       'hint-custom-proxy': '开启后优先使用自定义代理，内置代理作为后备',
       'btn-test-proxy': '测试代理', 'btn-start': '开始采集', 'btn-stop': '停止',
-      'proxy-status': '代理状态', 'tab-log': '运行日志', 'tab-files': '文件管理',
+      'proxy-status': '代理状态', 'tab-log': '运行日志', 'tab-files': '文件管理', 'tab-finance': '财务洞察',
       'log-header': '运行日志', 'btn-clear-log': '清空日志',
       'file-empty-title': '暂无文件',
       'file-empty-hint': '开始采集后，Excel和PDF文件将存放在此处',
@@ -105,7 +105,7 @@ const THEMES = {
       'log-pdf-link-files': '个PDF链接(需手动下载)',
       'log-failed-tasks': '⚠️ 共有', 'log-failed-tasks-suffix': '项任务未完成',
       'log-retry-hint': '提示: 未完成的任务可能是由于网络波动，请稍后再试',
-      'log-pdf-link-hint': '提示: PDF链接可在"文件管理"面板中点击名称在新标签页打开',
+      'log-pdf-link-hint': '提示: PDF链接可在"文件管理"面板中点击名称在页面内预览',
       'log-stopped-msg': '✋ 采集已被用户停止',
       'log-stopped-progress': '✋ 已停止', 'log-all-done': '✨ 全部完成',
       'log-error-occurred': '💥 发生错误', 'log-error-progress': '💥 出现错误',
@@ -224,10 +224,10 @@ const THEMES = {
     colors: null, // 所有主题保持普通模式配色，仅通过装饰覆盖层区分
     texts: {
       'page-title': '宗门秘籍探秘系统', 'nav-badge': 'v3.1 | 灵网运行',
-      'section-company': '宗门列表', 'label-company': '宗门名称（每行一个）',
+      'section-company': '宗门列表', 'label-company': '宗门名称（逗号分隔）',
       'section-year': '修炼年份', 'label-year': '年份（逗号分隔）',
       'hint-year': '支持多个年份，用逗号或空格分隔',
-      'section-table': '功法典籍', 'label-table': '典籍名称（每行一个）',
+      'section-table': '功法典籍', 'label-table': '典籍名称（逗号分隔）',
       'label-name-length': '典籍名称匹配长度限制',
       'hint-name-length': '只匹配名称长度小于此值的标签',
       'section-report': '功法等级', 'report-ndbg': '天级功法（年报）',
@@ -240,7 +240,7 @@ const THEMES = {
       'switch-custom-proxy': '派遣自定义弟子',
       'hint-custom-proxy': '开启后优先派遣自定义弟子，本门弟子作为后备',
       'btn-test-proxy': '🎯 试探弟子', 'btn-start': '🔮 开始探秘', 'btn-stop': '✋ 收功',
-      'proxy-status': '弟子状态', 'tab-log': '📜 传音符', 'tab-files': '🎒 储物袋',
+      'proxy-status': '弟子状态', 'tab-log': '📜 传音符', 'tab-files': '🎒 储物袋', 'tab-finance': '📊 洞察',
       'log-header': '📜 传音符', 'btn-clear-log': '清空传音符',
       'file-empty-title': '储物袋空空如也',
       'file-empty-hint': '🔮 开始探秘后，修炼手札和玉简将存放在此处',
@@ -421,9 +421,8 @@ const THEMES = {
     },
     proxyNames: {
       'killcors': '⭐大弟子·凌风', 'allorigins-json': '二弟子·青云',
-      'allorigins-raw': '三弟子·明月', 'corsproxy-io': '四弟子·铁山',
-      'codetabs': '五弟子·灵溪', 'cors-sh': '六弟子·玄冥',
-      'cors-anywhere': '七弟子·破军', 'x2u': '八弟子·流云',
+      'corsproxy-io': '三弟子·铁山', 'codetabs': '四弟子·灵溪',
+      'allorigins-raw': '五弟子·明月', 'x2u': '六弟子·流云',
     },
   },
   creepy: {
@@ -431,10 +430,10 @@ const THEMES = {
     colors: null, // 所有主题保持普通模式配色，仅通过装饰覆盖层区分
     texts: {
       'page-title': '禁忌档案搜寻系统', 'nav-badge': 'v3.1 | 暗网运行',
-      'section-company': '组织列表', 'label-company': '组织名称（每行一个）',
+      'section-company': '组织列表', 'label-company': '组织名称（逗号分隔）',
       'section-year': '年份', 'label-year': '年份（逗号分隔）',
       'hint-year': '支持多个年份，用逗号或空格分隔',
-      'section-table': '禁忌卷宗', 'label-table': '卷宗名称（每行一个）',
+      'section-table': '禁忌卷宗', 'label-table': '卷宗名称（逗号分隔）',
       'label-name-length': '卷宗名称匹配长度限制',
       'hint-name-length': '只匹配名称长度小于此值的标签',
       'section-report': '记录类型', 'report-ndbg': '终焉记录（年报）',
@@ -447,7 +446,7 @@ const THEMES = {
       'switch-custom-proxy': '派遣自定义暗探',
       'hint-custom-proxy': '开启后优先派遣自定义暗探，本组织暗探作为后备',
       'btn-test-proxy': '👁️ 试探暗探', 'btn-start': '👁️ 开启搜寻', 'btn-stop': '🩸 中止仪式',
-      'proxy-status': '暗探状态', 'tab-log': '🕯️ 异象记录', 'tab-files': '🕷️ 封印物柜',
+      'proxy-status': '暗探状态', 'tab-log': '🕯️ 异象记录', 'tab-files': '🕷️ 封印物柜', 'tab-finance': '🧭 洞察',
       'log-header': '🕯️ 异象记录', 'btn-clear-log': '清除异象',
       'file-empty-title': '封印物柜空空如也',
       'file-empty-hint': '👁️ 开启搜寻后，暗影摘要和封印文书将存放在此处',
@@ -638,10 +637,10 @@ const THEMES = {
     colors: null, // 所有主题保持普通模式配色，仅通过装饰覆盖层区分
     texts: {
       'page-title': '废土资源搜寻终端', 'nav-badge': 'v3.1 | 野外运行',
-      'section-company': '据点列表', 'label-company': '据点名称（每行一个）',
+      'section-company': '据点列表', 'label-company': '据点名称（逗号分隔）',
       'section-year': '年份', 'label-year': '年份（逗号分隔）',
       'hint-year': '支持多个年份，用逗号或空格分隔',
-      'section-table': '资源清单', 'label-table': '清单名称（每行一个）',
+      'section-table': '资源清单', 'label-table': '清单名称（逗号分隔）',
       'label-name-length': '清单名称匹配长度限制',
       'hint-name-length': '只匹配名称长度小于此值的标签',
       'section-report': '储备类型', 'report-ndbg': '年度储备（年报）',
@@ -654,7 +653,7 @@ const THEMES = {
       'switch-custom-proxy': '派遣自定义侦察兵',
       'hint-custom-proxy': '开启后优先派遣自定义侦察兵，本据点侦察兵作为后备',
       'btn-test-proxy': '📡 测试通讯', 'btn-start': '⚡ 出发搜寻', 'btn-stop': '🛡️ 撤退',
-      'proxy-status': '侦察兵状态', 'tab-log': '📡 通讯记录', 'tab-files': '📦 仓库',
+      'proxy-status': '侦察兵状态', 'tab-log': '📡 通讯记录', 'tab-files': '📦 仓库', 'tab-finance': '📊 洞察',
       'log-header': '📡 通讯记录', 'btn-clear-log': '清除记录',
       'file-empty-title': '仓库空空如也',
       'file-empty-hint': '⚡ 出发搜寻后，物资清单和蓝图文件将存放在此处',
@@ -845,10 +844,10 @@ const THEMES = {
     colors: null, // 所有主题保持普通模式配色，仅通过装饰覆盖层区分
     texts: {
       'page-title': '万界典籍搜寻系统', 'nav-badge': 'v3.1 | 万界运行',
-      'section-company': '势力列表', 'label-company': '势力名称（每行一个）',
+      'section-company': '势力列表', 'label-company': '势力名称（逗号分隔）',
       'section-year': '纪元', 'label-year': '纪元（逗号分隔）',
       'hint-year': '支持多个纪元，用逗号或空格分隔',
-      'section-table': '万界典籍', 'label-table': '典籍名称（每行一个）',
+      'section-table': '万界典籍', 'label-table': '典籍名称（逗号分隔）',
       'label-name-length': '典籍名称匹配长度限制',
       'hint-name-length': '只匹配名称长度小于此值的标签',
       'section-report': '劫录类型', 'report-ndbg': '天劫录（年报）',
@@ -861,7 +860,7 @@ const THEMES = {
       'switch-custom-proxy': '派遣自定义使者',
       'hint-custom-proxy': '开启后优先派遣自定义使者，本势力使者作为后备',
       'btn-test-proxy': '🌟 试探使者', 'btn-start': '🌟 开启搜寻', 'btn-stop': '🌀 收法',
-      'proxy-status': '使者状态', 'tab-log': '📜 天道日志', 'tab-files': '🌀 乾坤袋',
+      'proxy-status': '使者状态', 'tab-log': '📜 天道日志', 'tab-files': '🌀 乾坤袋', 'tab-finance': '🌌 洞察',
       'log-header': '📜 天道日志', 'btn-clear-log': '清除日志',
       'file-empty-title': '乾坤袋空空如也',
       'file-empty-hint': '🌟 开启搜寻后，修炼心得和神器图谱将存放在此处',
@@ -1049,9 +1048,78 @@ const THEMES = {
   },
 };
 
-function t(key) {
+
+const EXTRA_THEME_TEXTS = {
+  normal: {
+    'finance-panel-title': '财务洞察',
+    'finance-panel-desc': '自动汇总关键指标、异常波动和导出摘要',
+    'finance-refresh': '刷新洞察',
+    'finance-export': '导出摘要',
+    'finance-file-count': '文件总数',
+    'finance-company-count': '公司数',
+    'finance-year-count': '年份数',
+    'finance-excel-count': 'Excel',
+    'finance-pdf-count': 'PDF',
+    'finance-alert-count': '异常提醒',
+    'finance-revenue': '营业收入',
+    'finance-profit': '净利润',
+    'finance-assets': '总资产',
+    'finance-liabilities': '负债合计',
+    'finance-metric-title': '财务指标矩阵',
+    'finance-metric-metric': '指标',
+    'finance-metric-current': '当前值',
+    'finance-metric-previous': '上一期',
+    'finance-metric-change': '变动',
+    'finance-metric-rate': '涨跌幅',
+    'finance-metric-source': '来源',
+    'finance-alert-empty': '暂无异常，等你开始采集',
+    'collect-overview-title': '采集概览',
+    'collect-files': '当前文件',
+    'collect-selected': '选中',
+    'collect-pdf-links': 'PDF链接',
+    'collect-failed': '失败任务',
+    'file-filter-placeholder': '搜索文件、公司、年份或表名',
+    'file-filter-all': '全部文件',
+    'file-filter-excel': '仅 Excel',
+    'file-filter-pdf': '仅 PDF',
+    'file-filter-pdf-link': '仅 PDF 链接',
+  },
+  xianxia: {
+    'finance-panel-title': '灵脉洞察',
+    'finance-panel-desc': '自动汇总灵石指标、波动与导出摘要',
+    'collect-overview-title': '采集战报',
+    'file-filter-placeholder': '搜索宗门、年份、典籍或标签',
+  },
+  creepy: {
+    'finance-panel-title': '异象洞察',
+    'finance-panel-desc': '自动汇总异常波动与导出摘要',
+    'collect-overview-title': '异象概览',
+    'file-filter-placeholder': '搜索异常、来源、时间或标签',
+  },
+  doomsday: {
+    'finance-panel-title': '风险雷达',
+    'finance-panel-desc': '自动识别风险波动与导出摘要',
+    'collect-overview-title': '风险概览',
+    'file-filter-placeholder': '搜索公司、年份、风险或标签',
+  },
+  fantasy: {
+    'finance-panel-title': '星图洞察',
+    'finance-panel-desc': '自动汇总关键指标、异常波动和导出摘要',
+    'collect-overview-title': '星图概览',
+    'file-filter-placeholder': '搜索星图、公司、年份或标签',
+  },
+};
+
+function getThemeText(key) {
   const theme = THEMES[currentThemeId];
-  return (theme && theme.texts[key]) || THEMES.normal.texts[key] || key;
+  if (theme && theme.texts && theme.texts[key]) return theme.texts[key];
+  if (EXTRA_THEME_TEXTS[currentThemeId] && EXTRA_THEME_TEXTS[currentThemeId][key]) return EXTRA_THEME_TEXTS[currentThemeId][key];
+  if (EXTRA_THEME_TEXTS.normal[key]) return EXTRA_THEME_TEXTS.normal[key];
+  return THEMES.normal.texts[key] || key;
+}
+
+function t(key) {
+  return getThemeText(key);
 }
 
 function getThemeProxyName(proxyKey) {
@@ -1069,8 +1137,9 @@ function applyTheme(themeId) {
   let updated = 0;
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
-    if (theme.texts[key]) {
-      el.textContent = theme.texts[key];
+    const text = getThemeText(key);
+    if (text) {
+      el.textContent = text;
       updated++;
     } else {
       console.warn('[Theme] Missing text for key:', key);
@@ -1078,15 +1147,16 @@ function applyTheme(themeId) {
   });
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     const key = el.getAttribute('data-i18n-placeholder');
-    if (theme.texts[key]) el.placeholder = theme.texts[key];
+    const text = getThemeText(key);
+    if (text) el.placeholder = text;
   });
-  document.title = theme.texts['page-title'];
+  document.title = getThemeText('page-title');
   localStorage.setItem('themeId', themeId);
   const selector = document.getElementById('themeSelector');
   if (selector) selector.value = themeId;
   const banner = document.getElementById('sanxiuBanner');
   if (banner && banner.classList.contains('active')) {
-    banner.textContent = theme.texts['guest-banner'];
+    banner.textContent = getThemeText('guest-banner');
   }
   renderProxyStatus();
   // Update button innerHTML for theme consistency
@@ -1100,6 +1170,7 @@ function applyTheme(themeId) {
   }
   // Update download button (its data-i18n span may have been destroyed by textContent)
   updateDownloadButton();
+  if (typeof renderLogHistory === 'function') renderLogHistory();
 }
 
 (function() {

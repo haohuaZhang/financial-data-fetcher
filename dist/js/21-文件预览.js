@@ -7,6 +7,7 @@ async function previewFile(fileId) {
   const modal = document.getElementById('previewModal');
   const title = document.getElementById('previewTitle');
   const body = document.getElementById('previewBody');
+  if (!modal || !title || !body) return;
 
   title.textContent = file.name;
   body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);"><span class="spinner"></span> ' + t('file-preview-loading') + '</div>';
@@ -33,42 +34,94 @@ async function previewFile(fileId) {
         // BUG-A05: 使用data属性替代内联onclick，避免sheetName含特殊字符导致语法错误
         html += `<button class="excel-sheet-tab ${idx === 0 ? 'active' : ''}" data-sheet-name="${escapeHtml(name)}" data-sheet-idx="${idx}">${escapeHtml(displayName)}</button>`;
       });
-      // 添加图表标签
-      html += `<button class="excel-sheet-tab" id="chartTabBtn" data-action="chart" style="margin-left:8px;">${t('chart-tab')}</button>`;
       html += '</div>';
       html += `<div class="excel-table-wrap" id="excelTableWrap"></div>`;
-      html += `<div id="chartArea" style="display:none;padding:16px;"></div>`;
       body.innerHTML = html;
 
       // 存储预览状态用于键盘切换sheet
-      currentPreviewState = { fileId, sheetNames: workbook.SheetNames };
+      excelFilterState = { searchText: '', collapsedSections: {}, targetTables: [...new Set((file._tableNames || []).map(String).filter(Boolean))] };
+      currentPreviewState = { fileId, sheetNames: workbook.SheetNames, targetTables: excelFilterState.targetTables };
       renderExcelSheet(workbook.SheetNames[0], fileId);
     } catch (e) {
       body.innerHTML = `<div style="padding:40px;text-align:center;color:var(--error);">${t('file-preview-fail')}: ${escapeHtml(e.message)}</div>`;
     }
   } else if (file.type === 'pdf') {
-    // iframe无法正确加载blob PDF，改为新窗口打开
-    const blobUrl = URL.createObjectURL(file.blob);
+    const blobUrl = currentPdfBlobUrl && currentPreviewState && currentPreviewState.fileId === fileId ? currentPdfBlobUrl : URL.createObjectURL(file.blob);
     currentPdfBlobUrl = blobUrl;
-    body.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;">
-      <div style="font-size:3rem;">📄</div>
-      <div style="color:var(--text-secondary);font-size:0.9rem;">${t('file-preview-pdf-ready')}</div>
-      <div style="color:var(--text-muted);font-size:0.8rem;">${t('file-preview-pdf-size')} ${formatFileSize(file.size)}</div>
-      <button onclick="window.open('${blobUrl}', '_blank')" style="margin-top:8px;padding:10px 28px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);cursor:pointer;font-size:0.9rem;font-family:inherit;">${t('file-preview-pdf-btn')}</button>
+    currentPreviewState = { fileId, type: 'pdf' };
+    body.innerHTML = `<div class="pdf-preview-shell">
+      <div class="pdf-preview-toolbar">
+        <div>
+          <div class="pdf-preview-title">PDF 预览</div>
+          <div class="pdf-preview-meta">${escapeHtml(file.name)} · ${formatFileSize(file.size)}</div>
+        </div>
+        <div class="pdf-preview-actions">
+          <a class="btn-file-action primary-action" href="${blobUrl}" download="${escapeHtml(file.name)}">下载 PDF</a>
+        </div>
+      </div>
+      <iframe class="pdf-preview-frame" src="${blobUrl}" title="${escapeHtml(file.name)}"></iframe>
     </div>`;
   } else if (file.type === 'pdf-link') {
-    body.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;">
-      <div style="font-size:3rem;">🔗</div>
-      <div style="color:var(--text-secondary);font-size:0.9rem;">${t('file-preview-link-need')}</div>
-      <div style="color:var(--text-muted);font-size:0.8rem;word-break:break-all;max-width:80%;text-align:center;">${escapeHtml(file.url)}</div>
-      <a href="${file.url}" target="_blank" rel="noopener" style="margin-top:8px;padding:10px 28px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);cursor:pointer;font-size:0.9rem;text-decoration:none;">${t('file-preview-link-btn')}</a>
-    </div>`;
+    currentPreviewState = { fileId, type: 'pdf-link' };
+    const renderInlineUrl = (note) => {
+      body.innerHTML = `<div class="pdf-preview-shell">
+        <div class="pdf-preview-toolbar">
+          <div>
+            <div class="pdf-preview-title">PDF 链接预览</div>
+            <div class="pdf-preview-meta">${escapeHtml(file.url)}</div>
+          </div>
+          <div class="pdf-preview-actions">
+            <button class="btn-file-action" id="copyPdfLinkBtn">复制链接</button>
+          </div>
+        </div>
+        <div class="pdf-preview-fallback">${escapeHtml(note)}</div>
+        <iframe class="pdf-preview-frame" src="${escapeHtml(file.url)}#view=FitH" title="${escapeHtml(file.name)}"></iframe>
+      </div>`;
+      const copyBtn = document.getElementById('copyPdfLinkBtn');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(file.url);
+            copyBtn.textContent = '已复制';
+            setTimeout(() => { copyBtn.textContent = '复制链接'; }, 1500);
+          } catch (err) {
+            copyBtn.textContent = '复制失败';
+            setTimeout(() => { copyBtn.textContent = '复制链接'; }, 1500);
+          }
+        });
+      }
+    };
+    const tryRender = async () => {
+      body.innerHTML = `<div class="pdf-preview-shell"><div class="pdf-preview-toolbar"><div><div class="pdf-preview-title">PDF 链接预览</div><div class="pdf-preview-meta">正在尝试直接预览...</div></div></div><div class="pdf-preview-loading"><span class="spinner"></span> ${t('file-preview-loading')}</div></div>`;
+      try {
+        const blob = await fetchBinaryViaProxy(file.url);
+        if (!await isValidPdfBlob(blob)) throw new Error('不是有效PDF');
+        const blobUrl = URL.createObjectURL(blob);
+        currentPdfBlobUrl = blobUrl;
+        body.innerHTML = `<div class="pdf-preview-shell">
+          <div class="pdf-preview-toolbar">
+            <div>
+              <div class="pdf-preview-title">PDF 链接预览</div>
+              <div class="pdf-preview-meta">${escapeHtml(file.url)}</div>
+            </div>
+            <div class="pdf-preview-actions">
+              <a class="btn-file-action primary-action" href="${blobUrl}" download="${escapeHtml(file.name)}">下载 PDF</a>
+            </div>
+          </div>
+          <iframe class="pdf-preview-frame" src="${blobUrl}" title="${escapeHtml(file.name)}"></iframe>
+        </div>`;
+      } catch (e) {
+        renderInlineUrl('当前链接已在页面内预览，若无法显示请直接使用下方链接。');
+      }
+    };
+    tryRender();
   }
 }
 
 function switchExcelSheet(tabEl, sheetName, fileId) {
   tabEl.parentElement.querySelectorAll('.excel-sheet-tab').forEach(el => el.classList.remove('active'));
   tabEl.classList.add('active');
+  excelFilterState.collapsedSections = {};
   renderExcelSheet(sheetName, fileId);
 }
 
@@ -79,49 +132,65 @@ document.addEventListener('click', function(e) {
   const tabsContainer = tab.closest('.excel-sheet-tabs');
   if (!tabsContainer) return;
 
-  // 处理图表标签点击
-  if (tab.dataset.action === 'chart') {
-    tabsContainer.querySelectorAll('.excel-sheet-tab').forEach(el => el.classList.remove('active'));
-    tab.classList.add('active');
-    const fileId = parseInt(tabsContainer.dataset.fileId);
-    showChartArea(fileId);
-    return;
-  }
-
   const fileId = parseInt(tabsContainer.dataset.fileId);
   const sheetName = tab.dataset.sheetName;
   if (sheetName !== undefined && !isNaN(fileId)) {
     switchExcelSheet(tab, sheetName, fileId);
-    // 切换回sheet时隐藏图表区域
-    const chartArea = document.getElementById('chartArea');
-    const tableWrap = document.getElementById('excelTableWrap');
-    if (chartArea) chartArea.style.display = 'none';
-    if (tableWrap) tableWrap.style.display = '';
   }
 });
 
-// 当前Excel预览的筛选排序状态
-let excelFilterState = { searchText: '', sortCol: -1, sortDir: 'asc', allRows: null, headerRow: null };
+// 当前Excel预览的筛选/折叠状态
+let excelFilterState = { searchText: '', collapsedSections: {}, targetTables: [] };
 
-function filterAndSortTable(headerRow, dataRows, searchText, sortCol, sortDir) {
-  let filtered = dataRows;
-  if (searchText) {
-    const lowerSearch = searchText.toLowerCase();
-    filtered = filtered.filter(row => row.some(cell => String(cell).toLowerCase().includes(lowerSearch)));
+function countNonEmptyCells(row) {
+  return (row || []).filter(cell => String(cell ?? '').trim() !== '').length;
+}
+
+function splitExcelSections(rows, sheetName, targetTables) {
+  const titles = (targetTables || []).map(s => String(s).trim()).filter(Boolean);
+  const titleSet = new Set(titles);
+  if (titles.length === 0) {
+    const bodyRows = rows.filter(row => countNonEmptyCells(row) > 0);
+    return bodyRows.length ? [{ title: sheetName || t('file-preview-empty-sheet'), rows: bodyRows }] : [];
   }
-  if (sortCol >= 0) {
-    filtered = [...filtered].sort((a, b) => {
-      const va = a[sortCol] !== undefined ? a[sortCol] : '';
-      const vb = b[sortCol] !== undefined ? b[sortCol] : '';
-      const na = parseFloat(String(va).replace(/,/g, ''));
-      const nb = parseFloat(String(vb).replace(/,/g, ''));
-      if (!isNaN(na) && !isNaN(nb)) {
-        return sortDir === 'asc' ? na - nb : nb - na;
+
+  const sections = [];
+  let current = null;
+  let matchedTitles = new Set();
+
+  const isTitleRow = row => {
+    if (!row || countNonEmptyCells(row) !== 1) return null;
+    const firstCell = String(row[0] ?? '').trim();
+    return titleSet.has(firstCell) ? firstCell : null;
+  };
+
+  for (const rawRow of rows) {
+    const row = rawRow || [];
+    if (countNonEmptyCells(row) === 0) continue;
+
+    const title = isTitleRow(row);
+    if (title) {
+      if (current && current.title === title) {
+        continue;
       }
-      return sortDir === 'asc' ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
-    });
+      if (current && current.title !== title) {
+        sections.push(current);
+        current = null;
+      }
+      if (!matchedTitles.has(title)) {
+        current = { title, rows: [] };
+        matchedTitles.add(title);
+      }
+      continue;
+    }
+
+    if (current) {
+      current.rows.push(row);
+    }
   }
-  return filtered;
+
+  if (current) sections.push(current);
+  return sections.filter(section => section.rows.length > 0);
 }
 
 function renderExcelSheet(sheetName, fileId) {
@@ -130,9 +199,6 @@ function renderExcelSheet(sheetName, fileId) {
 
   const wrap = document.getElementById('excelTableWrap');
   if (!wrap) return;
-
-  // 重置筛选状态
-  excelFilterState = { searchText: '', sortCol: -1, sortDir: 'asc', allRows: null, headerRow: null };
 
   const readAndRender = async () => {
     try {
@@ -149,16 +215,9 @@ function renderExcelSheet(sheetName, fileId) {
         wrap.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);">' + t('file-preview-empty-sheet') + '</div>';
         return;
       }
-
-      const headerRow = rows[0] || [];
-      const dataRows = rows.slice(1);
-
-      // 保存完整数据
-      excelFilterState.allRows = dataRows;
-      excelFilterState.headerRow = headerRow;
-
-      // 渲染搜索栏和表格
-      renderFilteredExcel(wrap, headerRow, dataRows);
+      const sections = splitExcelSections(rows, sheetName, currentPreviewState?.targetTables || excelFilterState.targetTables);
+      currentPreviewState = { ...(currentPreviewState || {}), fileId, sheetName, sections };
+      renderFilteredExcel(wrap, sections);
     } catch (e) {
       wrap.innerHTML = `<div style="padding:40px;text-align:center;color:var(--error);">${t('file-preview-render-fail')}: ${escapeHtml(e.message)}</div>`;
     }
@@ -167,44 +226,58 @@ function renderExcelSheet(sheetName, fileId) {
   readAndRender();
 }
 
-function renderFilteredExcel(wrap, headerRow, dataRows) {
-  const maxRows = Math.min(dataRows.length, 500);
-  const filtered = filterAndSortTable(headerRow, dataRows, excelFilterState.searchText, excelFilterState.sortCol, excelFilterState.sortDir);
-  const displayRows = filtered.slice(0, maxRows);
-
+function renderFilteredExcel(wrap, sections) {
   let html = '<div class="data-filter-bar">';
   html += `<input type="text" id="excelSearchInput" placeholder="${t('data-search-placeholder')}" value="${escapeHtml(excelFilterState.searchText)}">`;
-  html += `<span class="data-filter-info">${t('data-showing').replace('{n}', displayRows.length).replace('{total}', dataRows.length)}</span>`;
+  const visibleRows = sections.reduce((sum, sec) => {
+    const sectionRows = getFilteredExcelSectionRows(sec);
+    return sum + Math.max(sectionRows.length - 1, 0);
+  }, 0);
+  const totalRows = sections.reduce((sum, sec) => sum + Math.max(sec.rows.length - 1, 0), 0);
+  html += `<span class="data-filter-info">${t('data-showing').replace('{n}', visibleRows).replace('{total}', totalRows)}</span>`;
   html += '</div>';
 
-  html += '<table class="excel-table">';
-  html += '<thead><tr>';
-  for (let c = 0; c < headerRow.length; c++) {
-    let sortClass = 'sortable';
-    if (excelFilterState.sortCol === c) {
-      sortClass += excelFilterState.sortDir === 'asc' ? ' sort-asc' : ' sort-desc';
-    }
-    html += `<th class="${sortClass}" data-col="${c}">${escapeHtml(String(headerRow[c]))}</th>`;
-  }
-  html += '</tr></thead><tbody>';
-
-  if (displayRows.length === 0) {
-    html += `<tr><td colspan="${headerRow.length}" style="text-align:center;padding:20px;color:var(--text-muted);">${t('data-no-results')}</td></tr>`;
-  }
-
-  for (const row of displayRows) {
-    html += '<tr>';
-    for (let c = 0; c < headerRow.length; c++) {
-      const val = c < row.length ? String(row[c]) : '';
-      html += `<td title="${escapeHtml(val)}">${escapeHtml(val)}</td>`;
-    }
-    html += '</tr>';
-  }
-
-  html += '</tbody></table>';
-
-  if (dataRows.length > maxRows) {
-    html += `<div style="padding:10px;text-align:center;color:var(--text-muted);font-size:0.8rem;">${t('file-preview-showing').replace('{show}', maxRows).replace('{total}', dataRows.length)}</div>`;
+  if (sections.length === 0) {
+    html += `<div style="padding:40px;text-align:center;color:var(--text-muted);">${t('data-no-results')}</div>`;
+  } else {
+    sections.forEach((section, idx) => {
+      const filteredRows = getFilteredExcelSectionRows(section);
+      const isCollapsed = !!excelFilterState.collapsedSections[idx];
+      const title = escapeHtml(section.title || `Sheet ${idx + 1}`);
+      const headerRow = filteredRows[0] || [];
+      const bodyRows = filteredRows.slice(1);
+      html += `<div class="excel-section" data-section-idx="${idx}">
+        <div class="excel-section-head">
+          <button class="excel-section-toggle" type="button" data-section-idx="${idx}" aria-label="切换折叠">${isCollapsed ? '▸' : '▾'}</button>
+          <div class="excel-section-title">${title}</div>
+          <div class="excel-section-meta">${Math.max(filteredRows.length - 1, 0)} 行</div>
+        </div>
+        <div class="excel-section-body" style="${isCollapsed ? 'display:none;' : ''}">`;
+      if (filteredRows.length === 0) {
+        html += `<div class="excel-section-empty">${t('data-no-results')}</div>`;
+      } else {
+        html += '<table class="excel-table">';
+        html += '<thead><tr>';
+        headerRow.forEach((cell, c) => {
+          html += `<th>${escapeHtml(String(cell || ''))}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+        if (bodyRows.length === 0) {
+          html += `<tr><td colspan="${Math.max(headerRow.length, 1)}" style="text-align:center;padding:20px;color:var(--text-muted);">${t('data-no-results')}</td></tr>`;
+        } else {
+          bodyRows.forEach(row => {
+            html += '<tr>';
+            for (let c = 0; c < headerRow.length; c++) {
+              const val = c < row.length ? String(row[c]) : '';
+              html += `<td title="${escapeHtml(val)}">${escapeHtml(val)}</td>`;
+            }
+            html += '</tr>';
+          });
+        }
+        html += '</tbody></table>';
+      }
+      html += '</div></div>';
+    });
   }
 
   wrap.innerHTML = html;
@@ -212,28 +285,48 @@ function renderFilteredExcel(wrap, headerRow, dataRows) {
   // 绑定搜索事件
   const searchInput = document.getElementById('excelSearchInput');
   if (searchInput) {
+    if (excelFilterState.isComposing === undefined) excelFilterState.isComposing = false;
+    searchInput.addEventListener('compositionstart', function() {
+      excelFilterState.isComposing = true;
+    });
+    searchInput.addEventListener('compositionend', function() {
+      excelFilterState.isComposing = false;
+      excelFilterState.searchText = this.value;
+      renderFilteredExcel(document.getElementById('excelTableWrap'), currentPreviewState?.sections || sections || []);
+      const newInput = document.getElementById('excelSearchInput');
+      if (newInput) {
+        newInput.focus();
+        newInput.selectionStart = newInput.selectionEnd = newInput.value.length;
+      }
+    });
     searchInput.addEventListener('input', function() {
       excelFilterState.searchText = this.value;
-      renderFilteredExcel(wrap, excelFilterState.headerRow, excelFilterState.allRows);
+      if (excelFilterState.isComposing || this.isComposing) return;
+      renderFilteredExcel(document.getElementById('excelTableWrap'), currentPreviewState?.sections || sections || []);
       // 重新聚焦搜索框
       const newInput = document.getElementById('excelSearchInput');
       if (newInput) { newInput.focus(); newInput.selectionStart = newInput.selectionEnd = newInput.value.length; }
     });
   }
 
-  // 绑定表头排序事件
-  wrap.querySelectorAll('th.sortable').forEach(th => {
-    th.addEventListener('click', function() {
-      const col = parseInt(this.dataset.col);
-      if (excelFilterState.sortCol === col) {
-        excelFilterState.sortDir = excelFilterState.sortDir === 'asc' ? 'desc' : 'asc';
-      } else {
-        excelFilterState.sortCol = col;
-        excelFilterState.sortDir = 'asc';
-      }
-      renderFilteredExcel(wrap, excelFilterState.headerRow, excelFilterState.allRows);
+  wrap.querySelectorAll('.excel-section-toggle').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const idx = this.dataset.sectionIdx;
+      excelFilterState.collapsedSections[idx] = !excelFilterState.collapsedSections[idx];
+      renderFilteredExcel(document.getElementById('excelTableWrap'), currentPreviewState?.sections || sections || []);
     });
   });
+}
+
+function getFilteredExcelSectionRows(section) {
+  const query = excelFilterState.searchText.trim().toLowerCase();
+  if (!query) return section.rows;
+  const titleMatch = String(section.title || '').toLowerCase().includes(query);
+  if (titleMatch) return section.rows;
+  const header = section.rows[0] || [];
+  const filteredBody = section.rows.slice(1).filter(row => row.some(cell => String(cell).toLowerCase().includes(query)));
+  if (filteredBody.length === 0) return [];
+  return [header, ...filteredBody];
 }
 
 function closePreviewModal() {
@@ -241,25 +334,24 @@ function closePreviewModal() {
   modal.classList.remove('active');
   const body = document.getElementById('previewBody');
   const iframe = body.querySelector('iframe');
-  if (iframe) {
-    iframe.src = '';
-  }
-  // BUG-A08: 释放PDF blobUrl内存
+  if (iframe) iframe.src = '';
   if (currentPdfBlobUrl) {
     try { URL.revokeObjectURL(currentPdfBlobUrl); } catch(e) {}
     currentPdfBlobUrl = null;
   }
-  // 清除预览状态
   currentPreviewState = null;
   body.innerHTML = '';
 }
 
 // 点击遮罩关闭模态框
-document.getElementById('previewModal').addEventListener('click', function(e) {
-  if (e.target === this) {
-    closePreviewModal();
-  }
-});
+const previewModalEl = document.getElementById('previewModal');
+if (previewModalEl) {
+  previewModalEl.addEventListener('click', function(e) {
+    if (e.target === this) {
+      closePreviewModal();
+    }
+  });
+}
 
 // ESC键关闭模态框 / 键盘快捷键
 document.addEventListener('keydown', function(e) {

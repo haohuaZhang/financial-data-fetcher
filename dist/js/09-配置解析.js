@@ -1,16 +1,17 @@
 // ==================== 配置解析 ====================
 function getRawConfig() {
   // BUG-A04: 获取原始配置（不应用散修阉割），用于保存
-  let companies = document.getElementById('companies').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const splitCommaList = value => value.split(/[,\n，]+/).map(s => s.trim()).filter(Boolean);
+  let companies = splitCommaList(document.getElementById('companies').value);
   let years = document.getElementById('years').value.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean);
-  const targetTables = document.getElementById('targetTables').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const targetTables = splitCommaList(document.getElementById('targetTables').value);
   const reportTypes = [];
   document.querySelectorAll('#reportTypes .checkbox-item.active').forEach(item => {
     reportTypes.push(item.dataset.value);
   });
   const needPdf = document.getElementById('needPdfSwitch').classList.contains('active');
   const nameLength = parseInt(document.getElementById('nameLength').value) || 100;
-  const customProxies = document.getElementById('customProxies').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const customProxies = document.getElementById('customProxies').value.split(/\n+/).map(s => s.trim()).filter(Boolean);
   const useCustomProxy = document.getElementById('useCustomProxySwitch').classList.contains('active');
 
   return { companies, years, targetTables, reportTypes, needPdf, nameLength, customProxies, useCustomProxy };

@@ -1,0 +1,288 @@
+
+
+<div class="theme-bg-deco" aria-hidden="true">
+  <div class="theme-bg-deco-inner"></div>
+</div>
+
+<!-- ==================== 暗号验证弹框 ==================== -->
+<div class="secret-modal-overlay" id="secretModal">
+  <div class="secret-modal">
+    <div class="secret-icon">🔐</div>
+    <div class="secret-hint" data-i18n="secret-hint">唱跳rap背带裤</div>
+    <input type="text" class="secret-input" id="secretInput" data-i18n-placeholder="secret-placeholder" placeholder="请输入暗号" autocomplete="off">
+    <div class="secret-channel"><span data-i18n="secret-channel">暗号渠道：关注微信公众号</span> <span data-i18n="secret-channel-name">蒙西求职记</span></div>
+    <div class="secret-error" id="secretError"></div>
+    <div class="secret-actions">
+      <button class="btn-skip" onclick="skipSecret()" data-i18n="secret-btn-skip">跳过</button>
+      <button class="btn-confirm" onclick="verifySecret()" data-i18n="secret-btn-confirm">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 散修提示条 ==================== -->
+<div class="sanxiu-banner" id="sanxiuBanner">
+  ⚠️ 当前为访客模式，公司列表仅处理第一个公司，年份也只处理第一个年份，报告类型只能选择一个
+</div>
+
+<!-- ==================== 底部Toast ==================== -->
+<div class="bottom-toast" id="bottomToast"></div>
+
+<!-- ==================== 顶部导航栏 ==================== -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-icon">$</div>
+    <div class="header-title" data-i18n="page-title">财务报告数据采集工具</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="header-badge" data-i18n="nav-badge">v3.1 | 纯浏览器运行</div>
+    <div class="theme-switcher">
+      <select id="themeSelector" onchange="applyTheme(this.value)">
+        <option value="normal">📊 普通模式</option>
+        <option value="xianxia">🔮 修仙模式</option>
+        <option value="creepy">👁️ 诡异模式</option>
+        <option value="doomsday">⚡ 末日模式</option>
+        <option value="fantasy">🌟 玄幻模式</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 主容器 ==================== -->
+<div class="main-container">
+  <!-- 左侧配置面板 -->
+  <div class="left-panel">
+    <!-- 宗门列表 -->
+    <div class="section open">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon green">&#x1F3E2;</div>
+        <div class="section-title" data-i18n="section-company">公司列表</div>
+        <span class="collapse-arrow">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="form-group">
+          <label class="form-label" data-i18n="label-company">公司名称（每行一个）</label>
+          <textarea id="companies" placeholder="艾为电子&#10;圣邦股份&#10;思瑞浦">艾为电子
+圣邦股份</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 修炼年份 -->
+    <div class="section open">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon blue">&#x1F4C5;</div>
+        <div class="section-title" data-i18n="section-year">报告年份</div>
+        <span class="collapse-arrow">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="form-group">
+          <label class="form-label" data-i18n="label-year">年份（逗号分隔）</label>
+          <input type="text" id="years" value="2021, 2022, 2023" placeholder="2021, 2022, 2023">
+          <div class="form-hint" data-i18n="hint-year">支持多个年份，用逗号或空格分隔</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 功法典籍 -->
+    <div class="section open">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon yellow">&#x1F4CA;</div>
+        <div class="section-title" data-i18n="section-table">目标表格</div>
+        <span class="collapse-arrow">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="form-group">
+          <label class="form-label" data-i18n="label-table">表格名称（每行一个）</label>
+          <textarea id="targetTables" class="small" placeholder="合并利润表&#10;合并资产负债表">合并利润表
+合并资产负债表</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="label-name-length">表格名称匹配长度限制</label>
+          <input type="number" id="nameLength" value="100" min="1" max="500">
+          <div class="form-hint" data-i18n="hint-name-length">只匹配名称长度小于此值的标签</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 功法等级 -->
+    <div class="section open">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon red">&#x1F4D1;</div>
+        <div class="section-title" data-i18n="section-report">报告类型</div>
+        <span class="collapse-arrow">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="checkbox-group" id="reportTypes">
+          <label class="checkbox-item active" data-value="ndbg">
+            <input type="checkbox" checked>
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label" data-i18n="report-ndbg">年报</span>
+          </label>
+          <label class="checkbox-item active" data-value="zqbg">
+            <input type="checkbox" checked>
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label" data-i18n="report-zqbg">中报</span>
+          </label>
+          <label class="checkbox-item" data-value="sjdbg">
+            <input type="checkbox">
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label" data-i18n="report-sjdbg">三季报</span>
+          </label>
+          <label class="checkbox-item" data-value="yjdbg">
+            <input type="checkbox">
+            <span class="checkbox-box"></span>
+            <span class="checkbox-label" data-i18n="report-yjdbg">一季报</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 玉简获取 -->
+    <div class="section open">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon blue">&#x1F4C4;</div>
+        <div class="section-title" data-i18n="section-pdf">PDF下载</div>
+        <span class="collapse-arrow">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="switch-row">
+          <span class="switch-label" data-i18n="switch-pdf">获取PDF文件</span>
+          <div class="switch" id="needPdfSwitch">
+            <div class="switch-knob"></div>
+          </div>
+        </div>
+        <div class="form-hint" data-i18n="hint-pdf">开启后将尝试获取报告PDF（可能受跨域限制）</div>
+      </div>
+    </div>
+
+    <!-- 弟子派遣 -->
+    <div class="section open">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon settings">&#9881;</div>
+        <div class="section-title" data-i18n="section-proxy">代理设置</div>
+        <span class="collapse-arrow">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="form-group">
+          <label class="form-label" data-i18n="label-proxy">自定义代理地址（每行一个）</label>
+          <textarea id="customProxies" placeholder="https://proxy.killcors.com/?url=&#10;https://corsproxy.io/?url="></textarea>
+          <div class="form-hint" data-i18n="hint-proxy">格式：代理地址前缀，目标URL会自动拼接在后面。已实测可用：proxy.killcors.com</div>
+        </div>
+        <div class="switch-row">
+          <span class="switch-label" data-i18n="switch-custom-proxy">使用自定义代理</span>
+          <div class="switch" id="useCustomProxySwitch">
+            <div class="switch-knob"></div>
+          </div>
+        </div>
+        <div class="form-hint" style="margin-top:-6px;" data-i18n="hint-custom-proxy">开启后优先使用自定义代理，内置代理作为后备</div>
+        <button class="btn btn-secondary" id="btnTestProxies" onclick="testCustomProxies()" style="width:100%;margin-top:10px;background:var(--bg-input);border:1px solid var(--border-color);color:var(--text-primary);"><span data-i18n="btn-test-proxy">测试代理</span></button>
+        <div id="proxyTestResult" style="margin-top:10px;font-size:0.8rem;"></div>
+      </div>
+    </div>
+
+    <!-- 配置模板 -->
+    <div class="config-templates" style="margin-bottom:12px;">
+      <select id="configTemplateSelect" style="width:100%;padding:8px 10px;border:1px solid var(--border-color);border-radius:var(--radius);background:var(--bg-input);color:var(--text-primary);font-family:inherit;font-size:0.82rem;margin-bottom:8px;">
+        <option value="">-- 选择已保存的配置 --</option>
+      </select>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-file-action" onclick="loadConfigTemplate()" data-i18n="btn-load-config" style="flex:1;">📋 加载配置</button>
+        <button class="btn-file-action" onclick="saveConfigTemplate()" data-i18n="btn-save-config" style="flex:1;">💾 保存配置</button>
+        <button onclick="deleteConfigTemplate()" data-i18n="btn-delete-config">🗑️ 删除</button>
+      </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnStart" onclick="startFetching()">
+        <span>&#9654;</span> <span data-i18n="btn-start">开始采集</span>
+      </button>
+      <button class="btn btn-danger" id="btnStop" onclick="stopFetching()" disabled>
+        <span>&#9632;</span> <span data-i18n="btn-stop">停止</span>
+      </button>
+    </div>
+
+    <!-- 弟子状态面板 -->
+    <div class="proxy-status-panel" id="proxyStatusPanel">
+      <div class="proxy-status-title">
+        <span>&#x1F310;</span> <span data-i18n="proxy-status">代理状态</span>
+      </div>
+      <div class="proxy-status-list" id="proxyStatusList">
+        <!-- 由JS动态填充 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 右侧内容区 -->
+  <div class="right-panel">
+    <!-- 进度条 -->
+    <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: var(--bg-primary);">
+      <div class="progress-area">
+        <div class="progress-header">
+          <span class="progress-title" id="progressTitle">就绪</span>
+          <span class="progress-stats" id="progressStats">0 / 0</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+        <div class="company-status-list" id="companyStatusList"></div>
+      </div>
+    </div>
+
+    <!-- Tab 栏 -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('log')" id="tabBtnLog">
+        <span data-i18n="tab-log">运行日志</span>
+        <span class="tab-badge" id="logCount">0</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('files')" id="tabBtnFiles">
+        <span data-i18n="tab-files">文件管理</span>
+        <span class="tab-badge" id="fileCount">0</span>
+      </button>
+    </div>
+
+    <!-- Tab面板: 日志 -->
+    <div class="tab-panel active" id="panelLog">
+      <div class="log-panel">
+        <div class="progress-summary" id="progressSummary">
+          <span class="progress-summary-icon"></span>
+          <span class="progress-summary-text" id="progressSummaryText">就绪</span>
+        </div>
+        <div class="log-header">
+          <div class="log-header-left">
+            <span class="log-header-title" data-i18n="log-header">运行日志</span>
+          </div>
+          <button class="btn-clear-log" onclick="clearLog()" data-i18n="btn-clear-log">清空日志</button>
+        </div>
+        <div class="log-content" id="logContent"></div>
+      </div>
+    </div>
+
+    <!-- Tab面板: 🎒 储物袋 -->
+    <div class="tab-panel" id="panelFiles">
+      <div class="file-panel">
+        <div class="file-toolbar">
+          <div class="file-toolbar-left">
+            <button class="btn-file-action" onclick="selectAllFiles()" data-i18n="btn-select-all">全选</button>
+            <button class="btn-file-action" onclick="deselectAllFiles()" data-i18n="btn-deselect-all">取消全选</button>
+          </div>
+          <div class="file-toolbar-right">
+            <button class="btn-file-action" onclick="openCompareModal()" data-i18n="btn-data-compare">📊 数据对比</button>
+            <button class="btn-file-action primary-action" id="btnDownloadZip" onclick="downloadSelectedZip()" disabled>
+              <span data-i18n="btn-download-zip">打包下载 (ZIP)</span>
+            </button>
+          </div>
+        </div>
+        <div class="file-list-container" id="fileListContainer">
+          <div class="file-empty" id="fileEmpty">
+            <div class="file-empty-icon">&#x1F4C2;</div>
+            <div data-i18n="file-empty-title">暂无文件</div>
+            <div style="font-size:0.75rem;" data-i18n="file-empty-hint">开始采集后，Excel和PDF文件将存放在此处</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 预览模态框 ==================== -->
