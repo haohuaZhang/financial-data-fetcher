@@ -24,6 +24,22 @@ async function isValidPdfBlob(blob) {
   }
 }
 
+function createTimeoutFetchOptions(timeoutMs, extraOptions = {}) {
+  if (typeof AbortController === 'undefined') {
+    return { options: extraOptions, clear() {} };
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  return {
+    options: { ...extraOptions, signal: controller.signal },
+    clear() {
+      clearTimeout(timer);
+    }
+  };
+}
+
 async function fetchBinaryViaProxy(url, retries = 2) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     let proxies = getAvailableProxies('binary');
@@ -33,7 +49,13 @@ async function fetchBinaryViaProxy(url, retries = 2) {
         const proxyUrl = proxyFn(url);
         const proxyName = getProxyName(proxyFn);
         addLog(`${t('log-binary-proxy')} ${proxyName} ${t('log-binary-proxy-request')}: ${url.substring(0, 60)}...`, 'debug');
-        const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(60000) });
+        const timeout = createTimeoutFetchOptions(60000);
+        let resp;
+        try {
+          resp = await fetch(proxyUrl, timeout.options);
+        } finally {
+          timeout.clear();
+        }
         if (!resp.ok) {
           markProxyFailed(proxyFn, `HTTP ${resp.status}`);
           throw new Error(`HTTP ${resp.status}`);

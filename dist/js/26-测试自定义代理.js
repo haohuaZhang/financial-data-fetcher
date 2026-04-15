@@ -1,4 +1,20 @@
 // ==================== 测试自定义代理 ====================
+function createTimeoutFetchOptions(timeoutMs, extraOptions = {}) {
+  if (typeof AbortController === 'undefined') {
+    return { options: extraOptions, clear() {} };
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  return {
+    options: { ...extraOptions, signal: controller.signal },
+    clear() {
+      clearTimeout(timer);
+    }
+  };
+}
+
 async function testCustomProxies() {
   const btn = document.getElementById('btnTestProxies');
   const resultEl = document.getElementById('proxyTestResult');
@@ -25,7 +41,13 @@ async function testCustomProxies() {
     try {
       const fullUrl = fn(testUrl);
       const startTime = Date.now();
-      const resp = await fetch(fullUrl, { signal: AbortSignal.timeout(15000) });
+      const timeout = createTimeoutFetchOptions(15000);
+      let resp;
+      try {
+        resp = await fetch(fullUrl, timeout.options);
+      } finally {
+        timeout.clear();
+      }
       const elapsed = Date.now() - startTime;
 
       if (resp.ok) {

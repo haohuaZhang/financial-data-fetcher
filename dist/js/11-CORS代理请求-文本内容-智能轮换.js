@@ -31,6 +31,22 @@ function getCustomProxyName(proxyUrl) {
   }
 }
 
+function createTimeoutFetchOptions(timeoutMs, extraOptions = {}) {
+  if (typeof AbortController === 'undefined') {
+    return { options: extraOptions, clear() {} };
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  return {
+    options: { ...extraOptions, signal: controller.signal },
+    clear() {
+      clearTimeout(timer);
+    }
+  };
+}
+
 async function fetchViaProxy(url, retries = 3) {
   // 请求去重：如果同一URL已被请求过，直接使用缓存结果
   if (requestCache.has(url)) {
@@ -83,10 +99,15 @@ async function fetchViaProxy(url, retries = 3) {
         addLog(`[request] URL: ${proxyUrl.substring(0, 100)}...`, 'debug');
         
         const startTime = Date.now();
-        const resp = await fetch(proxyUrl, {
-          signal: AbortSignal.timeout(30000),
+        const timeout = createTimeoutFetchOptions(30000, {
           headers: { 'Accept': 'text/html,application/json,*/*' }
         });
+        let resp;
+        try {
+          resp = await fetch(proxyUrl, timeout.options);
+        } finally {
+          timeout.clear();
+        }
         const elapsed = Date.now() - startTime;
         
         // 调试信息：显示响应状态码
