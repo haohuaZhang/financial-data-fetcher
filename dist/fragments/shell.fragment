@@ -21,7 +21,8 @@
 
 <!-- ==================== 散修提示条 ==================== -->
 <div class="sanxiu-banner" id="sanxiuBanner">
-  ⚠️ 当前为访客模式，公司列表仅处理第一个公司，年份也只处理第一个年份，报告类型只能选择一个
+  <span class="sanxiu-banner-text" id="sanxiuBannerText" data-i18n="guest-banner">⚠️ 当前为访客模式，公司列表仅处理第一个公司，年份也只处理第一个年份，报告类型只能选择一个</span>
+  <span class="sanxiu-banner-countdown" id="sanxiuBannerCountdown"></span>
 </div>
 
 <!-- ==================== 底部Toast ==================== -->

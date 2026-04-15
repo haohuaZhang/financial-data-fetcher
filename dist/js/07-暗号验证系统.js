@@ -1,14 +1,95 @@
 // ==================== 暗号验证系统 ====================
 const SECRET_CODES = ['我是坤哥你记住', '1', '张大帅', '林肥肥', '520'];
+const EXPERIENCE_CODES = ['饿了会吃饭', '我是小帅', '鸡你太美', '重生之我在异世界当牛马', '2'];
+const SECRET_MODE_KEY = 'secretVerifiedMode';
+const EXPERIENCE_EXPIRED_KEY = 'experienceSecretExpired';
+const SECRET_EXPIRE_MS = 3600000;
+const EXPERIENCE_EXPIRE_MS = 3600000;
+let guestModeActive = false;
+let experienceBannerTimer = null;
 let isMember = false; // 是否已验证暗号（门派弟子）
 let secretExpired = false; // 暗号是否已过期
 
+function formatCountdown(ms) {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+  const seconds = String(totalSeconds % 60).padStart(2, '0');
+  return `${minutes}:${seconds}`;
+}
+
+function stopExperienceCountdown() {
+  if (experienceBannerTimer) {
+    clearInterval(experienceBannerTimer);
+    experienceBannerTimer = null;
+  }
+}
+
+function isExperienceExpired() {
+  return localStorage.getItem(EXPERIENCE_EXPIRED_KEY) === 'true';
+}
+
+function renderAccessBanner() {
+  const banner = document.getElementById('sanxiuBanner');
+  const textEl = document.getElementById('sanxiuBannerText');
+  const countdownEl = document.getElementById('sanxiuBannerCountdown');
+  if (!banner || !textEl || !countdownEl) return;
+
+  const verified = sessionStorage.getItem('secretVerified') === 'true';
+  const mode = sessionStorage.getItem(SECRET_MODE_KEY) || 'permanent';
+
+  if (guestModeActive && !verified) {
+    stopExperienceCountdown();
+    banner.classList.add('active');
+    textEl.textContent = getThemeText('guest-banner');
+    countdownEl.textContent = '';
+    return;
+  }
+
+  if (!verified) {
+    stopExperienceCountdown();
+    banner.classList.remove('active');
+    textEl.textContent = getThemeText('guest-banner');
+    countdownEl.textContent = '';
+    return;
+  }
+
+  if (mode === 'experience') {
+    stopExperienceCountdown();
+    banner.classList.add('active');
+    textEl.textContent = getThemeText('experience-banner');
+
+    const updateCountdown = () => {
+      const verifiedTime = parseInt(sessionStorage.getItem('secretVerifiedTime') || '0');
+      const remaining = EXPERIENCE_EXPIRE_MS - (Date.now() - verifiedTime);
+      if (remaining <= 0) {
+        stopExperienceCountdown();
+        countdownEl.textContent = '';
+        checkSecretExpiry();
+        return;
+      }
+      countdownEl.textContent = `${formatCountdown(remaining)} 后失效`;
+    };
+
+    updateCountdown();
+    experienceBannerTimer = setInterval(updateCountdown, 1000);
+    return;
+  }
+
+  stopExperienceCountdown();
+  banner.classList.remove('active');
+  countdownEl.textContent = '';
+  textEl.textContent = getThemeText('guest-banner');
+}
+
 // 检查sessionStorage是否已验证
 function checkSecretStatus() {
+  if (checkSecretExpiry()) return;
   const verified = sessionStorage.getItem('secretVerified');
   if (verified === 'true') {
     isMember = true;
+    guestModeActive = false;
     document.getElementById('secretModal').classList.add('hidden');
+    renderAccessBanner();
     return;
   }
   // 显示弹框
@@ -16,23 +97,38 @@ function checkSecretStatus() {
   document.getElementById('secretInput').focus();
   // 如果是过期导致的，显示过期提示
   if (secretExpired) {
-    document.getElementById('secretError').textContent = t('secret-expired');
+    const expiredKey = isExperienceExpired() ? 'secret-experience-expired' : 'secret-expired';
+    document.getElementById('secretError').textContent = t(expiredKey);
     secretExpired = false;
   }
+  if (isExperienceExpired()) {
+    document.getElementById('secretError').textContent = t('secret-experience-expired');
+  }
+  renderAccessBanner();
 }
 
-// 检查暗号是否已过期（超过1小时未操作）
+// 检查暗号是否已过期
 function checkSecretExpiry() {
   if (!sessionStorage.getItem('secretVerified')) return false;
+  const mode = sessionStorage.getItem(SECRET_MODE_KEY) || 'permanent';
   const verifiedTime = parseInt(sessionStorage.getItem('secretVerifiedTime') || '0');
-  if (Date.now() - verifiedTime > 3600000) {
+  const expireMs = mode === 'experience' ? EXPERIENCE_EXPIRE_MS : SECRET_EXPIRE_MS;
+  if (Date.now() - verifiedTime > expireMs) {
     // 过期，清除验证状态
     sessionStorage.removeItem('secretVerified');
     sessionStorage.removeItem('secretVerifiedTime');
+    sessionStorage.removeItem(SECRET_MODE_KEY);
+    guestModeActive = false;
     isMember = false;
     secretExpired = true;
+    if (mode === 'experience') {
+      localStorage.setItem(EXPERIENCE_EXPIRED_KEY, 'true');
+      document.getElementById('secretError').textContent = t('secret-experience-expired');
+    } else {
+      document.getElementById('secretError').textContent = t('secret-expired');
+    }
     document.getElementById('secretModal').classList.remove('hidden');
-    document.getElementById('secretError').textContent = t('secret-expired');
+    renderAccessBanner();
     document.getElementById('secretInput').focus();
     return true;
   }
@@ -41,7 +137,7 @@ function checkSecretExpiry() {
 
 // 更新暗号验证时间戳（每次用户操作时调用）
 function updateSecretTime() {
-  if (sessionStorage.getItem('secretVerified') === 'true') {
+  if (sessionStorage.getItem('secretVerified') === 'true' && sessionStorage.getItem(SECRET_MODE_KEY) !== 'experience') {
     sessionStorage.setItem('secretVerifiedTime', Date.now().toString());
   }
 }
@@ -59,14 +155,49 @@ function verifySecret() {
     return;
   }
 
-  if (SECRET_CODES.includes(input)) {
-    // 暗号正确
+  if (EXPERIENCE_CODES.includes(input)) {
+    if (isExperienceExpired()) {
+      errorEl.textContent = t('secret-experience-expired');
+      inputEl.classList.add('error');
+      setTimeout(() => inputEl.classList.remove('error'), 400);
+      return;
+    }
+    const verifiedTime = parseInt(sessionStorage.getItem('secretVerifiedTime') || '0');
+    if (verifiedTime && Date.now() - verifiedTime > EXPERIENCE_EXPIRE_MS) {
+      sessionStorage.removeItem('secretVerified');
+      sessionStorage.removeItem('secretVerifiedTime');
+      sessionStorage.removeItem(SECRET_MODE_KEY);
+      localStorage.setItem(EXPERIENCE_EXPIRED_KEY, 'true');
+      isMember = false;
+      secretExpired = true;
+      errorEl.textContent = t('secret-experience-expired');
+      inputEl.classList.add('error');
+      setTimeout(() => inputEl.classList.remove('error'), 400);
+      return;
+    }
     isMember = true;
+    guestModeActive = false;
     secretExpired = false;
     sessionStorage.setItem('secretVerified', 'true');
+    sessionStorage.setItem(SECRET_MODE_KEY, 'experience');
     sessionStorage.setItem('secretVerifiedTime', Date.now().toString());
     document.getElementById('secretModal').classList.add('hidden');
     showBottomToast(t('secret-toast-welcome'));
+    renderAccessBanner();
+    return;
+  }
+
+  if (SECRET_CODES.includes(input)) {
+    // 暗号正确
+    isMember = true;
+    guestModeActive = false;
+    secretExpired = false;
+    sessionStorage.setItem('secretVerified', 'true');
+    sessionStorage.setItem(SECRET_MODE_KEY, 'permanent');
+    sessionStorage.setItem('secretVerifiedTime', Date.now().toString());
+    document.getElementById('secretModal').classList.add('hidden');
+    showBottomToast(t('secret-toast-welcome'));
+    renderAccessBanner();
   } else {
     // 暗号错误
     errorEl.textContent = t('secret-error-wrong');
@@ -77,9 +208,10 @@ function verifySecret() {
 
 // 跳过暗号验证（散修模式）
 function skipSecret() {
+  guestModeActive = true;
   document.getElementById('secretModal').classList.add('hidden');
   // 显示散修提示条
-  document.getElementById('sanxiuBanner').classList.add('active');
+  renderAccessBanner();
   // 显示底部Toast
   showBottomToast(t('guest-toast'));
   // 限制功法等级只能选一个

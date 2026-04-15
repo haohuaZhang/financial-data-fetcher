@@ -777,7 +777,8 @@ textarea.small { min-height: 50px; }
   text-align: center;
   border-bottom: 1px solid #fbbf24;
 }
-.sanxiu-banner.active { display: block; }
+.sanxiu-banner.active { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.sanxiu-banner-countdown { font-weight: 700; }
 
 /* ==================== 底部Toast提示 ==================== */
 .bottom-toast {
@@ -1229,7 +1230,8 @@ textarea.small { min-height: 50px; }
   border-bottom: 1px solid var(--warning);
   box-shadow: 0 2px 8px var(--warning-dim);
 }
-.sanxiu-banner.active { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.sanxiu-banner.active { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.sanxiu-banner-countdown { font-weight: 700; }
 
 /* ==================== 按钮增强样式 ==================== */
 .btn {
