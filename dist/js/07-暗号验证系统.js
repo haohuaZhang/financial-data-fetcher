@@ -1,5 +1,5 @@
 // ==================== 暗号验证系统 ====================
-const SECRET_CODES = ['我是坤哥你记住'];
+const SECRET_CODES = ['我是坤哥你记住', '1', '张大帅', '林肥肥', '520'];
 let isMember = false; // 是否已验证暗号（门派弟子）
 let secretExpired = false; // 暗号是否已过期
 
