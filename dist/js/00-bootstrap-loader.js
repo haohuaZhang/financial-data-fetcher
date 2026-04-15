@@ -1,11 +1,13 @@
 (() => {
   const assetBase = window.__APP_ASSET_BASE__ || '.';
+  const assetVersion = window.__APP_VERSION__ || '20260415';
+  const withVersion = path => `${assetBase}/${path}?v=${assetVersion}`;
   const fragmentPaths = [
-    `${assetBase}/fragments/decorations.fragment`,
-    `${assetBase}/fragments/header.fragment`,
-    `${assetBase}/fragments/left-panel.fragment`,
-    `${assetBase}/fragments/right-panel.fragment`,
-    `${assetBase}/fragments/modals.fragment`,
+    withVersion('fragments/decorations.fragment'),
+    withVersion('fragments/header.fragment'),
+    withVersion('fragments/left-panel.fragment'),
+    withVersion('fragments/right-panel.fragment'),
+    withVersion('fragments/modals.fragment'),
   ];
 
   const groupScripts = {
@@ -90,7 +92,7 @@
 
   const loadScript = src => new Promise((resolve, reject) => {
     const el = document.createElement('script');
-    el.src = `${assetBase}/js/${src}`;
+    el.src = withVersion(`js/${src}`);
     el.onload = resolve;
     el.onerror = () => reject(new Error(`加载失败: ${src}`));
     document.head.appendChild(el);
