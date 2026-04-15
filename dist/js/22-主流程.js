@@ -129,8 +129,8 @@ async function startFetching() {
               if (config.needPdf && pdfUrlFromPage) {
                 try {
                   const pdfFilename = `${company}_${ann.year}_${rtName}_${Date.now()}.pdf`;
-                  const downloaded = await downloadPdfViaProxy(pdfUrlFromPage, pdfFilename, company, ann.year, rtName);
-                  if (!downloaded) savePdfLink(pdfUrlFromPage, pdfFilename, company, ann.year, rtName);
+                  const downloaded = await downloadPdfViaProxy(pdfUrlFromPage, pdfFilename, company, ann.year, rtName, ann.title);
+                  if (!downloaded) savePdfLink(pdfUrlFromPage, pdfFilename, company, ann.year, rtName, ann.title);
                 } catch (e) { addLog(`${t('log-pdf-exception')}: ${e.message}`, 'warn'); }
               } else if (config.needPdf && !pdfUrlFromPage) {
                 addLog(t('log-pdf-no-link'), 'warn');
@@ -207,9 +207,9 @@ async function startFetching() {
               if (config.needPdf && pdfUrlFromPage) {
                 try {
                   const pdfFilename = `${company}_${ann.year}_${rtName}_${Date.now()}.pdf`;
-                  const downloaded = await downloadPdfViaProxy(pdfUrlFromPage, pdfFilename, company, ann.year, rtName);
+                  const downloaded = await downloadPdfViaProxy(pdfUrlFromPage, pdfFilename, company, ann.year, rtName, ann.title);
                   if (!downloaded) {
-                    savePdfLink(pdfUrlFromPage, pdfFilename, company, ann.year, rtName);
+                    savePdfLink(pdfUrlFromPage, pdfFilename, company, ann.year, rtName, ann.title);
                   }
                 } catch (e) {
                   addLog(`${t('log-pdf-exception')}: ${e.message}`, 'warn');

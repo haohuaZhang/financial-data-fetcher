@@ -1,5 +1,97 @@
 // ==================== 文件预览 ====================
 
+async function getPdfJsLib() {
+  if (window.pdfjsLib) return window.pdfjsLib;
+  if (!window.__pdfJsLoaderPromise) {
+    window.__pdfJsLoaderPromise = import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.149/pdf.min.mjs').then(mod => {
+      const lib = mod.default || mod;
+      lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.149/pdf.worker.min.mjs';
+      window.pdfjsLib = lib;
+      return lib;
+    });
+  }
+  return window.__pdfJsLoaderPromise;
+}
+
+async function renderPdfCanvasPreview({ body, fileName, sourceText, downloadUrl, blob }) {
+  const pdfjsLib = await getPdfJsLib();
+  const arrayBuffer = blob instanceof Blob ? await blob.arrayBuffer() : blob;
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const pageCount = pdf.numPages;
+  const firstPage = await pdf.getPage(1);
+  const viewport = firstPage.getViewport({ scale: 1 });
+  const bodyWidth = Math.max(body.clientWidth - 48, 320);
+  const scale = Math.min(1.8, bodyWidth / viewport.width);
+  const renderPage = async (pageNum) => {
+    const page = await pdf.getPage(pageNum);
+    const pageViewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.width = Math.floor(pageViewport.width);
+    canvas.height = Math.floor(pageViewport.height);
+    canvas.className = 'pdf-preview-canvas';
+    canvas.setAttribute('aria-label', `${fileName} - 第 ${pageNum} 页`);
+    await page.render({ canvasContext: context, viewport: pageViewport }).promise;
+    return { pageNum, canvas };
+  };
+
+  const firstPageInfo = await renderPage(1);
+
+  body.innerHTML = `<div class="pdf-preview-shell">
+    <div class="pdf-preview-toolbar">
+      <div>
+        <div class="pdf-preview-title">PDF 预览</div>
+        <div class="pdf-preview-meta">${escapeHtml(sourceText || fileName)} · 共 ${pageCount} 页</div>
+      </div>
+      <div class="pdf-preview-actions">
+        <a class="btn-file-action primary-action" href="${downloadUrl}" download="${escapeHtml(fileName)}">下载 PDF</a>
+      </div>
+    </div>
+    <div class="pdf-preview-scroll">
+      <div class="pdf-preview-canvas-wrap"></div>
+    </div>
+  </div>`;
+
+  const wrap = body.querySelector('.pdf-preview-canvas-wrap');
+  if (wrap) {
+    const firstBlock = document.createElement('div');
+    firstBlock.className = 'pdf-preview-page';
+    firstBlock.innerHTML = `<div class="pdf-preview-page-label">第 1 页</div>`;
+    firstBlock.appendChild(firstPageInfo.canvas);
+    wrap.appendChild(firstBlock);
+
+    if (pageCount > 1) {
+      const loadingBlock = document.createElement('div');
+      loadingBlock.className = 'pdf-preview-page';
+      loadingBlock.innerHTML = `<div class="pdf-preview-page-label">其余 ${pageCount - 1} 页后台加载中</div>`;
+      wrap.appendChild(loadingBlock);
+
+      Promise.resolve().then(async () => {
+        if (!document.body.contains(body)) return;
+        loadingBlock.remove();
+        for (let pageNum = 2; pageNum <= pageCount; pageNum++) {
+          if (!document.body.contains(body)) return;
+          try {
+            const item = await renderPage(pageNum);
+            const pageBlock = document.createElement('div');
+            pageBlock.className = 'pdf-preview-page';
+            pageBlock.innerHTML = `<div class="pdf-preview-page-label">第 ${item.pageNum} 页</div>`;
+            pageBlock.appendChild(item.canvas);
+            wrap.appendChild(pageBlock);
+          } catch (e) {
+            const errorBlock = document.createElement('div');
+            errorBlock.className = 'pdf-preview-page';
+            errorBlock.innerHTML = `<div class="pdf-preview-page-label">第 ${pageNum} 页加载失败</div>`;
+            wrap.appendChild(errorBlock);
+            break;
+          }
+          await new Promise(resolve => setTimeout(resolve, 0));
+        }
+      });
+    }
+  }
+}
+
 async function previewFile(fileId) {
   const file = collectedFiles.find(f => f.id === fileId);
   if (!file) return;
@@ -46,21 +138,30 @@ async function previewFile(fileId) {
       body.innerHTML = `<div style="padding:40px;text-align:center;color:var(--error);">${t('file-preview-fail')}: ${escapeHtml(e.message)}</div>`;
     }
   } else if (file.type === 'pdf') {
-    const blobUrl = currentPdfBlobUrl && currentPreviewState && currentPreviewState.fileId === fileId ? currentPdfBlobUrl : URL.createObjectURL(file.blob);
+    const blobUrl = URL.createObjectURL(file.blob);
     currentPdfBlobUrl = blobUrl;
     currentPreviewState = { fileId, type: 'pdf' };
-    body.innerHTML = `<div class="pdf-preview-shell">
-      <div class="pdf-preview-toolbar">
-        <div>
-          <div class="pdf-preview-title">PDF 预览</div>
-          <div class="pdf-preview-meta">${escapeHtml(file.name)} · ${formatFileSize(file.size)}</div>
+    body.innerHTML = '<div class="pdf-preview-shell"><div class="pdf-preview-toolbar"><div><div class="pdf-preview-title">PDF 预览</div><div class="pdf-preview-meta">' + escapeHtml(file.name) + ' · ' + formatFileSize(file.size) + '</div></div></div><div class="pdf-preview-loading"><span class="spinner"></span> ' + t('file-preview-loading') + '</div></div>';
+    renderPdfCanvasPreview({
+      body,
+      fileName: file.name,
+      sourceText: `${file.name} · ${formatFileSize(file.size)}`,
+      downloadUrl: blobUrl,
+      blob: file.blob,
+    }).catch(e => {
+      body.innerHTML = `<div class="pdf-preview-shell">
+        <div class="pdf-preview-toolbar">
+          <div>
+            <div class="pdf-preview-title">PDF 预览</div>
+            <div class="pdf-preview-meta">${escapeHtml(file.name)} · ${formatFileSize(file.size)}</div>
+          </div>
+          <div class="pdf-preview-actions">
+            <a class="btn-file-action primary-action" href="${blobUrl}" download="${escapeHtml(file.name)}">下载 PDF</a>
+          </div>
         </div>
-        <div class="pdf-preview-actions">
-          <a class="btn-file-action primary-action" href="${blobUrl}" download="${escapeHtml(file.name)}">下载 PDF</a>
-        </div>
-      </div>
-      <iframe class="pdf-preview-frame" src="${blobUrl}" title="${escapeHtml(file.name)}"></iframe>
-    </div>`;
+        <div class="pdf-preview-fallback">${escapeHtml(e.message || '预览失败')}</div>
+      </div>`;
+    });
   } else if (file.type === 'pdf-link') {
     currentPreviewState = { fileId, type: 'pdf-link' };
     const renderInlineUrl = (note) => {
@@ -75,7 +176,6 @@ async function previewFile(fileId) {
           </div>
         </div>
         <div class="pdf-preview-fallback">${escapeHtml(note)}</div>
-        <iframe class="pdf-preview-frame" src="${escapeHtml(file.url)}#view=FitH" title="${escapeHtml(file.name)}"></iframe>
       </div>`;
       const copyBtn = document.getElementById('copyPdfLinkBtn');
       if (copyBtn) {
@@ -98,18 +198,13 @@ async function previewFile(fileId) {
         if (!await isValidPdfBlob(blob)) throw new Error('不是有效PDF');
         const blobUrl = URL.createObjectURL(blob);
         currentPdfBlobUrl = blobUrl;
-        body.innerHTML = `<div class="pdf-preview-shell">
-          <div class="pdf-preview-toolbar">
-            <div>
-              <div class="pdf-preview-title">PDF 链接预览</div>
-              <div class="pdf-preview-meta">${escapeHtml(file.url)}</div>
-            </div>
-            <div class="pdf-preview-actions">
-              <a class="btn-file-action primary-action" href="${blobUrl}" download="${escapeHtml(file.name)}">下载 PDF</a>
-            </div>
-          </div>
-          <iframe class="pdf-preview-frame" src="${blobUrl}" title="${escapeHtml(file.name)}"></iframe>
-        </div>`;
+        await renderPdfCanvasPreview({
+          body,
+          fileName: file.name,
+          sourceText: file.url,
+          downloadUrl: blobUrl,
+          blob,
+        });
       } catch (e) {
         renderInlineUrl('当前链接已在页面内预览，若无法显示请直接使用下方链接。');
       }

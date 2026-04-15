@@ -89,21 +89,72 @@ function resolveUrl(href, baseUrl) {
 /**
  * 通过代理下载PDF并存储到collectedFiles
  */
-function hasExistingPdfRecord(pdfUrl) {
-  return collectedFiles.some(file =>
-    (file.type === 'pdf' || file.type === 'pdf-link') && file.url === pdfUrl
-  );
+function isRevisedPdfTitle(text) {
+  if (!text) return false;
+  return /(修订版|修正版|修订稿|修正稿|修订后|修订|修正|更正|更新版|补充更正)/.test(String(text));
 }
 
-async function downloadPdfViaProxy(pdfUrl, filename, company, year, reportType) {
+function getPdfRecordPriority(file) {
+  const title = [file._sourceTitle, file.name, file.url].filter(Boolean).join(' ');
+  return {
+    revised: !!file._isRevised || isRevisedPdfTitle(title),
+    hasBlob: file.type === 'pdf' && !!file.blob,
+  };
+}
+
+function shouldReplacePdfRecord(existing, nextMeta) {
+  const existingPriority = getPdfRecordPriority(existing);
+  const nextPriority = {
+    revised: !!nextMeta.isRevised,
+    hasBlob: nextMeta.type === 'pdf',
+  };
+
+  if (nextPriority.revised !== existingPriority.revised) {
+    return nextPriority.revised;
+  }
+
+  if (nextPriority.hasBlob !== existingPriority.hasBlob) {
+    return nextPriority.hasBlob;
+  }
+
+  return false;
+}
+
+function findExistingPdfRecord(company, year, reportType) {
+  return collectedFiles.find(file =>
+    (file.type === 'pdf' || file.type === 'pdf-link') &&
+    file._company === company &&
+    String(file._year) === String(year) &&
+    file._reportType === reportType
+  ) || null;
+}
+
+function removeFileRecord(fileId) {
+  const idx = collectedFiles.findIndex(file => file.id === fileId);
+  if (idx >= 0) {
+    collectedFiles.splice(idx, 1);
+    updateFileCount();
+  }
+}
+
+async function downloadPdfViaProxy(pdfUrl, filename, company, year, reportType, reportTitle = '') {
   addLog(`${t('log-pdf-download')}: ${filename}`, 'info');
   try {
-    if (hasExistingPdfRecord(pdfUrl)) {
+    const existing = findExistingPdfRecord(company, year, reportType);
+    const nextMeta = {
+      type: 'pdf',
+      isRevised: isRevisedPdfTitle([reportTitle, filename, pdfUrl].filter(Boolean).join(' ')),
+    };
+
+    if (existing && !shouldReplacePdfRecord(existing, nextMeta)) {
       addLog(`${t('log-pdf-success')}: ${filename}（已存在，跳过重复保存）`, 'info');
       return true;
     }
     const blob = await fetchBinaryViaProxy(pdfUrl);
     if (blob && await isValidPdfBlob(blob)) {
+      if (existing) {
+        removeFileRecord(existing.id);
+      }
       const fileObj = {
         id: ++fileIdCounter,
         name: filename,
@@ -115,7 +166,9 @@ async function downloadPdfViaProxy(pdfUrl, filename, company, year, reportType) 
         timestamp: new Date().toISOString(),
         _company: company,
         _year: year,
-        _reportType: reportType
+        _reportType: reportType,
+        _sourceTitle: reportTitle,
+        _isRevised: nextMeta.isRevised
       };
       collectedFiles.push(fileObj);
       updateFileCount();
@@ -134,10 +187,20 @@ async function downloadPdfViaProxy(pdfUrl, filename, company, year, reportType) 
 /**
  * 将PDF链接存入collectedFiles（标记为pdf-link类型，供手动下载）
  */
-function savePdfLink(pdfUrl, filename, company, year, reportType) {
-  if (hasExistingPdfRecord(pdfUrl)) {
+function savePdfLink(pdfUrl, filename, company, year, reportType, reportTitle = '') {
+  const existing = findExistingPdfRecord(company, year, reportType);
+  const nextMeta = {
+    type: 'pdf-link',
+    isRevised: isRevisedPdfTitle([reportTitle, filename, pdfUrl].filter(Boolean).join(' ')),
+  };
+
+  if (existing && !shouldReplacePdfRecord(existing, nextMeta)) {
     addLog(`${t('log-pdf-link-saved')}: ${filename}（已存在，跳过重复保存）`, 'info');
     return;
+  }
+
+  if (existing) {
+    removeFileRecord(existing.id);
   }
   const fileObj = {
     id: ++fileIdCounter,
@@ -151,7 +214,9 @@ function savePdfLink(pdfUrl, filename, company, year, reportType) {
     _pdfInfo: { company, year, reportType },
     _company: company,
     _year: year,
-    _reportType: reportType
+    _reportType: reportType,
+    _sourceTitle: reportTitle,
+    _isRevised: nextMeta.isRevised
   };
   collectedFiles.push(fileObj);
   updateFileCount();

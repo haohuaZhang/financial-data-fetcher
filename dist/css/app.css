@@ -2559,6 +2559,43 @@ body::after {
   border: 0;
   background: #111;
 }
+.pdf-preview-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: #f4f4f5;
+  padding: 16px;
+}
+.pdf-preview-canvas-wrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  align-items: center;
+}
+.pdf-preview-page {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.pdf-preview-page-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.pdf-preview-canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  background: #fff;
+  box-shadow: var(--shadow-lg);
+}
+.pdf-preview-page .spinner {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+}
 .pdf-preview-loading,
 .pdf-preview-fallback {
   padding: 14px 16px 0;
