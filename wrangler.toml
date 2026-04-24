@@ -1,0 +1,5 @@
+name = "financial-data-fetcher"
+compatibility_date = "2026-04-24"
+
+[assets]
+directory = "./dist/"
