@@ -1,6 +1,5 @@
 name = "financial-data-fetcher"
 compatibility_date = "2024-01-01"
-main = "./dist/index.html"
 
 [assets]
 directory = "./dist"
