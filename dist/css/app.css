@@ -2370,6 +2370,13 @@ textarea:focus, input[type="text"]:focus, input[type="number"]:focus {
   transition: none !important;
   scroll-behavior: auto !important;
 }
+/* 顶部广告横幅保留动画效果 */
+.promo-banner {
+  animation: promo-gradient-flow 4s ease infinite, promo-slide-in 300ms ease-out both !important;
+}
+.promo-banner__rotate {
+  transition: opacity 400ms ease, transform 400ms ease !important;
+}
 .theme-particles,
 .theme-bg-media,
 .theme-deco-layer {
