@@ -18,69 +18,15 @@
   </div>
 </div>
 
-<!-- ==================== 顶部动态广告横幅 ==================== -->
+<!-- ==================== 顶部动态广告横幅（样式G：流动渐变 + 动态轮播） ==================== -->
 <div class="promo-banner" id="topAdBanner">
   <button class="promo-banner__close" onclick="document.getElementById('topAdBanner').style.display='none'" aria-label="关闭">&times;</button>
   <div class="promo-banner__inner">
-    <!-- 左侧渐变标签 -->
-    <span class="promo-banner__badge">接受定制开发</span>
-    <span class="promo-banner__dot" aria-hidden="true"></span>
-    <!-- 跑马灯滚动区域 -->
-    <div class="promo-banner__marquee">
-      <div class="promo-banner__track" id="promoTrack">
-        <span class="promo-banner__item">多板块非标准审计报告获取</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">批量公司财务数据对比分析</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">自定义财务指标计算与监控</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">历史数据多年趋势分析</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">特定行业板块批量采集</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">ESG / 社会责任报告采集</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">财务数据可视化图表报告</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">定期自动采集 + 推送通知</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">招股书 / 法律意见书提取</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">股东名册与股权结构分析</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">关联交易与担保数据采集</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">自定义 Excel 模板批量生成</span>
-        <span class="promo-banner__sep">✦</span>
-        <!-- 复制一份实现无缝循环 -->
-        <span class="promo-banner__item">多板块非标准审计报告获取</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">批量公司财务数据对比分析</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">自定义财务指标计算与监控</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">历史数据多年趋势分析</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">特定行业板块批量采集</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">ESG / 社会责任报告采集</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">财务数据可视化图表报告</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">定期自动采集 + 推送通知</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">招股书 / 法律意见书提取</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">股东名册与股权结构分析</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">关联交易与担保数据采集</span>
-        <span class="promo-banner__sep">✦</span>
-        <span class="promo-banner__item">自定义 Excel 模板批量生成</span>
-        <span class="promo-banner__sep">✦</span>
-      </div>
-    </div>
-    <span class="promo-banner__dot" aria-hidden="true"></span>
-    <!-- 脉冲 CTA 按钮 -->
+    <span class="promo-banner__icon">💼</span>
+    <span class="promo-banner__text">
+      接受财务数据定制开发 —
+      <span class="promo-banner__rotate" id="promoRotate">多板块非标准审计报告获取</span>
+    </span>
     <a class="promo-banner__cta" href="javascript:void(0)" id="promoCta">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348z"/></svg>
       zhh940417
@@ -89,6 +35,7 @@
 </div>
 <script>
 (function(){
+  /* 微信号复制 */
   var cta = document.getElementById('promoCta');
   if (cta) {
     cta.addEventListener('click', function(){
@@ -101,6 +48,35 @@
         setTimeout(function(){ self.innerHTML = orig; self.classList.remove('copied'); }, 2000);
       }
     });
+  }
+  /* 功能项动态轮播（淡入淡出 + 上移） */
+  var features = [
+    '多板块非标准审计报告获取',
+    '批量公司财务数据对比分析',
+    '自定义财务指标计算与监控',
+    '历史数据多年趋势分析',
+    '特定行业板块批量采集',
+    'ESG / 社会责任报告采集',
+    '财务数据可视化图表报告',
+    '定期自动采集 + 推送通知',
+    '招股书 / 法律意见书提取',
+    '股东名册与股权结构分析',
+    '关联交易与担保数据采集',
+    '自定义 Excel 模板批量生成'
+  ];
+  var el = document.getElementById('promoRotate');
+  if (el) {
+    var idx = 0;
+    setInterval(function(){
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(8px)';
+      setTimeout(function(){
+        idx = (idx + 1) % features.length;
+        el.textContent = features[idx];
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+      }, 400);
+    }, 3000);
   }
 })();
 </script>

@@ -2646,14 +2646,19 @@ body::after {
   font-size: 0.85rem;
 }
 
-/* ==================== 顶部动态广告横幅 ==================== */
+/* ==================== 顶部动态广告横幅（样式G：流动渐变 + 动态轮播） ==================== */
 .promo-banner {
   position: relative;
-  background: linear-gradient(90deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: promo-gradient-flow 8s ease infinite, promo-slide-in 300ms ease-out both;
   z-index: 99;
-  animation: promo-slide-in 300ms ease-out both;
   overflow: hidden;
+}
+@keyframes promo-gradient-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 @keyframes promo-slide-in {
   from { transform: translateY(-100%); opacity: 0; }
@@ -2662,131 +2667,83 @@ body::after {
 .promo-banner__inner {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 20px;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 48px;
   height: 40px;
   position: relative;
 }
-/* 左侧渐变流光标签 */
-.promo-banner__badge {
+/* 左侧图标 */
+.promo-banner__icon {
+  font-size: 1rem;
   flex-shrink: 0;
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 3px 12px;
-  border-radius: 4px;
-  background: linear-gradient(135deg, #22c55e, #16a34a, #15803d);
-  background-size: 200% 200%;
+}
+/* 中间文字区域 */
+.promo-banner__text {
   color: #fff;
-  letter-spacing: 0.03em;
-  animation: badge-shimmer 3s ease infinite;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   white-space: nowrap;
-}
-@keyframes badge-shimmer {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-/* 分隔圆点 */
-.promo-banner__dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  flex-shrink: 0;
-}
-/* 跑马灯区域 */
-.promo-banner__marquee {
-  flex: 1;
-  overflow: hidden;
-  mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
-}
-.promo-banner__track {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0;
-  white-space: nowrap;
-  animation: marquee-scroll 40s linear infinite;
-  will-change: transform;
 }
-.promo-banner__track:hover {
-  animation-play-state: paused;
+/* 动态轮播文字 */
+.promo-banner__rotate {
+  display: inline-block;
+  font-weight: 700;
+  color: #fff;
+  transition: opacity 400ms ease, transform 400ms ease;
+  min-width: 8em;
 }
-@keyframes marquee-scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-.promo-banner__item {
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.75);
-  padding: 0 4px;
-  letter-spacing: 0.01em;
-}
-.promo-banner__sep {
-  font-size: 0.55rem;
-  color: #22c55e;
-  padding: 0 8px;
-  opacity: 0.7;
-}
-/* 脉冲 CTA 按钮 */
+/* 毛玻璃 CTA 按钮 */
 .promo-banner__cta {
   position: relative;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 14px;
-  font-size: 0.74rem;
+  padding: 5px 16px;
+  font-size: 0.76rem;
   font-weight: 600;
   font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
   color: #fff;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
   text-decoration: none;
   white-space: nowrap;
   letter-spacing: 0.02em;
   cursor: pointer;
-  transition: transform 150ms ease, box-shadow 150ms ease;
+  transition: background 200ms ease, transform 150ms ease;
   z-index: 1;
 }
 .promo-banner__cta:hover {
+  background: rgba(255, 255, 255, 0.35);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35);
 }
 .promo-banner__cta:active {
   transform: scale(0.96);
 }
 .promo-banner__cta.copied {
-  background: linear-gradient(135deg, #15803d, #166534);
-}
-/* 脉冲光环 */
-.promo-banner__cta::after {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border-radius: inherit;
-  border: 2px solid rgba(34, 197, 94, 0.5);
-  opacity: 0;
-  transform: scale(1);
-  animation: pulse-ring 2.5s ease-out infinite;
-  z-index: -1;
-}
-@keyframes pulse-ring {
-  0% { transform: scale(1); opacity: 0.5; }
-  70% { transform: scale(1.4); opacity: 0; }
-  100% { transform: scale(1.4); opacity: 0; }
+  background: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 /* 关闭按钮 */
 .promo-banner__close {
   position: absolute;
-  right: 8px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
   appearance: none;
   border: 0;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 4px 6px;
   border-radius: 4px;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
   font-size: 0.95rem;
   line-height: 1;
@@ -2795,21 +2752,19 @@ body::after {
   z-index: 2;
 }
 .promo-banner__close:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.3);
+  color: #fff;
 }
 .promo-banner__close:active {
   transform: translateY(-50%) scale(0.9);
 }
 .promo-banner__close:focus-visible {
-  outline: 2px solid #22c55e;
+  outline: 2px solid #fff;
   outline-offset: 2px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .promo-banner { animation-duration: 1ms !important; }
-  .promo-banner__badge { animation: none !important; }
-  .promo-banner__track { animation-duration: 80s !important; }
-  .promo-banner__cta::after { animation: none !important; opacity: 0.2; }
+  .promo-banner { animation: promo-slide-in 1ms ease-out both !important; }
+  .promo-banner__rotate { transition-duration: 1ms !important; }
   .promo-banner, .promo-banner * { transition-duration: 1ms !important; }
 }
 
