@@ -17,6 +17,35 @@
       </div>
     </div>
 
+    <!-- ==================== 左侧定制服务广告卡片 ==================== -->
+    <div class="custom-service-card" id="leftAdCard">
+      <button class="ad-card-close" onclick="document.getElementById('leftAdCard').style.display='none'" title="关闭">&times;</button>
+      <div class="ad-card-header">
+        <span class="ad-card-badge">🔧 定制服务</span>
+      </div>
+      <div class="ad-card-body">
+        <p class="ad-card-title">需要更强大的财务数据能力？</p>
+        <ul class="ad-card-features">
+          <li>📋 多板块非标准审计报告获取</li>
+          <li>📊 批量公司财务数据对比分析</li>
+          <li>📈 自定义财务指标计算与监控</li>
+          <li>📉 历史数据趋势分析报告</li>
+          <li>🏭 特定行业板块批量采集</li>
+          <li>📑 ESG/社会责任报告采集</li>
+        </ul>
+      </div>
+      <div class="ad-card-footer">
+        <div class="ad-card-contact">
+          <span class="ad-card-wechat-icon">💬</span>
+          <div class="ad-card-wechat-info">
+            <span class="ad-card-wechat-label">微信咨询</span>
+            <span class="ad-card-wechat-value">zhh940417</span>
+          </div>
+        </div>
+        <span class="ad-card-tag">专业 · 高效 · 可定制</span>
+      </div>
+    </div>
+
     <!-- 修炼年份 -->
     <div class="section open">
       <div class="section-header" onclick="toggleSection(this)">

@@ -76,6 +76,12 @@ body {
   grid-template-columns: 420px 1fr;
   gap: 0;
   height: calc(100vh - 56px);
+  flex-shrink: 0;
+}
+/* 当顶部广告横幅存在时，自动缩减主容器高度 */
+.custom-service-banner ~ .main-container,
+.custom-service-banner + .main-container {
+  height: calc(100vh - 56px - 42px);
 }
 
 /* ==================== 左侧配置面板 ==================== */
@@ -2638,4 +2644,220 @@ body::after {
   padding: 24px;
   color: var(--text-muted);
   font-size: 0.85rem;
+}
+
+/* ==================== 定制服务广告 - 顶部横幅 ==================== */
+.custom-service-banner {
+  position: relative;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #6366f1 100%);
+  padding: 10px 20px;
+  overflow: hidden;
+  z-index: 99;
+}
+.custom-service-banner .ad-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 2;
+}
+.custom-service-banner .ad-banner-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  animation: ad-icon-pulse 2s ease-in-out infinite;
+}
+@keyframes ad-icon-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+.custom-service-banner .ad-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.custom-service-banner .ad-banner-highlight {
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.custom-service-banner .ad-banner-desc {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.custom-service-banner .ad-banner-contact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  padding: 5px 14px;
+  backdrop-filter: blur(4px);
+}
+.custom-service-banner .ad-wechat-badge {
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.custom-service-banner .ad-wechat-id {
+  color: #fde68a;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
+}
+.custom-service-banner .ad-close-btn {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  cursor: pointer;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  line-height: 1;
+}
+.custom-service-banner .ad-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+.custom-service-banner .ad-banner-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  animation: ad-shimmer 3s ease-in-out infinite;
+  z-index: 1;
+}
+@keyframes ad-shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* ==================== 定制服务广告 - 左侧卡片 ==================== */
+.custom-service-card {
+  position: relative;
+  background: linear-gradient(145deg, #f0f0ff 0%, #faf5ff 100%);
+  border: 1px solid rgba(79, 70, 229, 0.18);
+  border-radius: var(--radius-lg);
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.08);
+}
+.custom-service-card .ad-card-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: rgba(79, 70, 229, 0.08);
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  line-height: 1;
+}
+.custom-service-card .ad-card-close:hover {
+  background: rgba(79, 70, 229, 0.15);
+  color: var(--text-primary);
+}
+.custom-service-card .ad-card-header {
+  padding: 10px 14px 0;
+}
+.custom-service-card .ad-card-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  letter-spacing: 0.02em;
+}
+.custom-service-card .ad-card-body {
+  padding: 8px 14px 10px;
+}
+.custom-service-card .ad-card-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.custom-service-card .ad-card-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.custom-service-card .ad-card-features li {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 3px 0;
+  padding-left: 4px;
+  border-bottom: 1px dashed rgba(79, 70, 229, 0.08);
+  line-height: 1.4;
+}
+.custom-service-card .ad-card-features li:last-child {
+  border-bottom: none;
+}
+.custom-service-card .ad-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(79, 70, 229, 0.04);
+  border-top: 1px solid rgba(79, 70, 229, 0.1);
+}
+.custom-service-card .ad-card-contact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.custom-service-card .ad-card-wechat-icon {
+  font-size: 1.1rem;
+}
+.custom-service-card .ad-card-wechat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.custom-service-card .ad-card-wechat-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+.custom-service-card .ad-card-wechat-value {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #4f46e5;
+  font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
+  letter-spacing: 0.02em;
+}
+.custom-service-card .ad-card-tag {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  background: var(--bg-primary);
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  white-space: nowrap;
 }

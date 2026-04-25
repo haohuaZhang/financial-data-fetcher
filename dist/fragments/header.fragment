@@ -17,3 +17,20 @@
     </div>
   </div>
 </div>
+
+<!-- ==================== 顶部定制服务广告横幅 ==================== -->
+<div class="custom-service-banner" id="topAdBanner">
+  <button class="ad-close-btn" onclick="document.getElementById('topAdBanner').style.display='none'" title="关闭">&times;</button>
+  <div class="ad-banner-content">
+    <div class="ad-banner-icon">🔧</div>
+    <div class="ad-banner-text">
+      <span class="ad-banner-highlight">接受财务数据定制开发</span>
+      <span class="ad-banner-desc">多板块审计报告 · 批量数据采集 · 财务指标分析 · 可视化报告 · 行业对比</span>
+    </div>
+    <div class="ad-banner-contact">
+      <span class="ad-wechat-badge">💬 微信咨询</span>
+      <span class="ad-wechat-id">zhh940417</span>
+    </div>
+  </div>
+  <div class="ad-banner-shimmer"></div>
+</div>
