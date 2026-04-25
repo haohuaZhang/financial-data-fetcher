@@ -2646,7 +2646,7 @@ body::after {
   font-size: 0.85rem;
 }
 
-/* ==================== 顶部推广横幅 (SaaS-style) ==================== */
+/* ==================== 顶部推广横幅 (SaaS-style, 居中) ==================== */
 .promo-banner {
   position: relative;
   background: #f0fdf4;
@@ -2661,6 +2661,7 @@ body::after {
 .promo-banner__inner {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   padding: 0 24px;
   height: 44px;
@@ -2676,38 +2677,34 @@ body::after {
   background: #16a34a;
   border-radius: 0 2px 2px 0;
 }
-.promo-banner__icon {
-  flex-shrink: 0;
-  color: #16a34a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 6px;
-}
 .promo-banner__body {
   display: flex;
   align-items: center;
   gap: 8px;
   flex: 1;
+  justify-content: center;
   min-width: 0;
 }
-.promo-banner__title {
+.promo-banner__label {
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #15803d;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .promo-banner__sep {
   color: #86efac;
   font-size: 0.82rem;
   flex-shrink: 0;
 }
-.promo-banner__desc {
-  font-size: 0.78rem;
-  color: #6b7280;
+.promo-banner__rotator {
+  font-size: 0.8rem;
+  color: #374151;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 180px;
+  text-align: center;
 }
 .promo-banner__cta {
   flex-shrink: 0;
@@ -2734,6 +2731,10 @@ body::after {
   transform: scale(0.97);
 }
 .promo-banner__close {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   appearance: none;
   border: 0;
   background: transparent;
@@ -2751,7 +2752,7 @@ body::after {
   color: #374151;
 }
 .promo-banner__close:active {
-  transform: scale(0.92);
+  transform: translateY(-50%) scale(0.92);
 }
 .promo-banner__close:focus-visible {
   outline: 2px solid #16a34a;
@@ -2854,8 +2855,8 @@ body::after {
 }
 .service-card__features {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px 12px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 5px 10px;
   margin-bottom: 12px;
 }
 .service-card__feat {
