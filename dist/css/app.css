@@ -2372,7 +2372,7 @@ textarea:focus, input[type="text"]:focus, input[type="number"]:focus {
 }
 /* 顶部广告横幅保留动画效果 */
 .promo-banner {
-  animation: promo-gradient-flow 4s ease infinite, promo-slide-in 300ms ease-out both !important;
+  animation: promo-gradient-flow 2s ease infinite, promo-slide-in 300ms ease-out both !important;
 }
 .promo-banner__rotate {
   transition: opacity 400ms ease, transform 400ms ease !important;
@@ -2658,7 +2658,7 @@ body::after {
   position: relative;
   background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
   background-size: 400% 400%;
-  animation: promo-gradient-flow 4s ease infinite, promo-slide-in 300ms ease-out both;
+  animation: promo-gradient-flow 2s ease infinite, promo-slide-in 300ms ease-out both;
   z-index: 99;
   overflow: hidden;
 }
