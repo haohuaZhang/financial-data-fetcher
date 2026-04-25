@@ -79,9 +79,9 @@ body {
   flex-shrink: 0;
 }
 /* 当顶部广告横幅存在时，自动缩减主容器高度 */
-.custom-service-banner ~ .main-container,
-.custom-service-banner + .main-container {
-  height: calc(100vh - 56px - 42px);
+.promo-banner ~ .main-container,
+.promo-banner + .main-container {
+  height: calc(100vh - 56px - 44px);
 }
 
 /* ==================== 左侧配置面板 ==================== */
@@ -2646,218 +2646,293 @@ body::after {
   font-size: 0.85rem;
 }
 
-/* ==================== 定制服务广告 - 顶部横幅 ==================== */
-.custom-service-banner {
+/* ==================== 顶部推广横幅 (SaaS-style) ==================== */
+.promo-banner {
   position: relative;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #6366f1 100%);
-  padding: 10px 20px;
-  overflow: hidden;
+  background: #f0fdf4;
+  border-bottom: 1px solid #bbf7d0;
   z-index: 99;
+  animation: promo-slide-in 240ms ease-out both;
 }
-.custom-service-banner .ad-banner-content {
+@keyframes promo-slide-in {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.promo-banner__inner {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  padding: 0 24px;
+  height: 44px;
+  max-width: 100%;
   position: relative;
-  z-index: 2;
 }
-.custom-service-banner .ad-banner-icon {
-  font-size: 1.4rem;
+.promo-banner__rail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #16a34a;
+  border-radius: 0 2px 2px 0;
+}
+.promo-banner__icon {
   flex-shrink: 0;
-  animation: ad-icon-pulse 2s ease-in-out infinite;
-}
-@keyframes ad-icon-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.15); }
-}
-.custom-service-banner .ad-banner-text {
+  color: #16a34a;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+}
+.promo-banner__body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex: 1;
   min-width: 0;
 }
-.custom-service-banner .ad-banner-highlight {
-  color: #fff;
-  font-size: 0.88rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+.promo-banner__title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #15803d;
+  white-space: nowrap;
 }
-.custom-service-banner .ad-banner-desc {
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.72rem;
+.promo-banner__sep {
+  color: #86efac;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+}
+.promo-banner__desc {
+  font-size: 0.78rem;
+  color: #6b7280;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.custom-service-banner .ad-banner-contact {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.promo-banner__cta {
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 20px;
-  padding: 5px 14px;
-  backdrop-filter: blur(4px);
-}
-.custom-service-banner .ad-wechat-badge {
-  color: #fff;
-  font-size: 0.78rem;
-  font-weight: 600;
-}
-.custom-service-banner .ad-wechat-id {
-  color: #fde68a;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
-}
-.custom-service-banner .ad-close-btn {
-  position: absolute;
-  top: 4px;
-  right: 8px;
-  background: rgba(255, 255, 255, 0.15);
-  border: none;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 1rem;
-  cursor: pointer;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  z-index: 3;
-  line-height: 1;
-}
-.custom-service-banner .ad-close-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  padding: 5px 14px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
   color: #fff;
+  background: #16a34a;
+  border-radius: 6px;
+  text-decoration: none;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  transition: background-color 150ms ease, transform 120ms ease;
+  cursor: pointer;
 }
-.custom-service-banner .ad-banner-shimmer {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
-  animation: ad-shimmer 3s ease-in-out infinite;
-  z-index: 1;
+.promo-banner__cta:hover {
+  background: #15803d;
+  transform: translateY(-1px);
 }
-@keyframes ad-shimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
+.promo-banner__cta:active {
+  transform: scale(0.97);
+}
+.promo-banner__close {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 6px;
+  border-radius: 6px;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: background-color 120ms ease, color 120ms ease, transform 120ms ease;
+}
+.promo-banner__close:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #374151;
+}
+.promo-banner__close:active {
+  transform: scale(0.92);
+}
+.promo-banner__close:focus-visible {
+  outline: 2px solid #16a34a;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .promo-banner { animation-duration: 1ms !important; }
+  .promo-banner, .promo-banner * { transition-duration: 1ms !important; }
 }
 
-/* ==================== 定制服务广告 - 左侧卡片 ==================== */
-.custom-service-card {
+/* ==================== 左侧定制服务卡片 ==================== */
+.service-card {
   position: relative;
-  background: linear-gradient(145deg, #f0f0ff 0%, #faf5ff 100%);
-  border: 1px solid rgba(79, 70, 229, 0.18);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   margin-bottom: 20px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  animation: card-fade-in 280ms ease-out both;
+  animation-delay: 80ms;
 }
-.custom-service-card .ad-card-close {
+@keyframes card-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.service-card__rail {
   position: absolute;
-  top: 6px;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #16a34a;
+  border-radius: 0 2px 2px 0;
+}
+.service-card__content {
+  padding: 14px 14px 14px 18px;
+}
+.service-card__close {
+  position: absolute;
+  top: 8px;
   right: 8px;
-  background: rgba(79, 70, 229, 0.08);
-  border: none;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 4px;
+  border-radius: 6px;
   color: var(--text-muted);
-  font-size: 0.9rem;
   cursor: pointer;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 3;
+  font-size: 0.95rem;
   line-height: 1;
+  z-index: 3;
+  transition: background-color 120ms ease, color 120ms ease;
 }
-.custom-service-card .ad-card-close:hover {
-  background: rgba(79, 70, 229, 0.15);
+.service-card__close:hover {
+  background: var(--bg-input);
   color: var(--text-primary);
 }
-.custom-service-card .ad-card-header {
-  padding: 10px 14px 0;
+.service-card__close:active {
+  transform: scale(0.9);
 }
-.custom-service-card .ad-card-badge {
-  display: inline-block;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  color: #fff;
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 12px;
-  letter-spacing: 0.02em;
+.service-card__close:focus-visible {
+  outline: 2px solid #16a34a;
+  outline-offset: 2px;
 }
-.custom-service-card .ad-card-body {
-  padding: 8px 14px 10px;
-}
-.custom-service-card .ad-card-title {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-}
-.custom-service-card .ad-card-features {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.custom-service-card .ad-card-features li {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  padding: 3px 0;
-  padding-left: 4px;
-  border-bottom: 1px dashed rgba(79, 70, 229, 0.08);
-  line-height: 1.4;
-}
-.custom-service-card .ad-card-features li:last-child {
-  border-bottom: none;
-}
-.custom-service-card .ad-card-footer {
+.service-card__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 14px;
-  background: rgba(79, 70, 229, 0.04);
-  border-top: 1px solid rgba(79, 70, 229, 0.1);
+  margin-bottom: 8px;
 }
-.custom-service-card .ad-card-contact {
+.service-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #15803d;
+  letter-spacing: 0.01em;
+}
+.service-card__badge svg {
+  flex-shrink: 0;
+}
+.service-card__tag {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #16a34a;
+  background: #f0fdf4;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid #bbf7d0;
+  white-space: nowrap;
+}
+.service-card__title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+.service-card__features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  margin-bottom: 12px;
+}
+.service-card__feat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.73rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+.service-card__feat svg {
+  flex-shrink: 0;
+  color: #9ca3af;
+}
+.service-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+.service-card__contact {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.custom-service-card .ad-card-wechat-icon {
-  font-size: 1.1rem;
+.service-card__wechat-icon {
+  flex-shrink: 0;
+  color: #07c160;
 }
-.custom-service-card .ad-card-wechat-info {
+.service-card__wechat-text {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 0;
 }
-.custom-service-card .ad-card-wechat-label {
-  font-size: 0.65rem;
+.service-card__wechat-label {
+  font-size: 0.62rem;
   color: var(--text-muted);
+  line-height: 1.2;
 }
-.custom-service-card .ad-card-wechat-value {
-  font-size: 0.85rem;
+.service-card__wechat-id {
+  font-size: 0.82rem;
   font-weight: 700;
-  color: #4f46e5;
+  color: var(--text-primary);
   font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
   letter-spacing: 0.02em;
+  line-height: 1.3;
 }
-.custom-service-card .ad-card-tag {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  background: var(--bg-primary);
-  padding: 2px 8px;
-  border-radius: 10px;
+.service-card__copy-btn {
+  appearance: none;
   border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
   white-space: nowrap;
+  transition: all 150ms ease;
+}
+.service-card__copy-btn:hover {
+  border-color: #16a34a;
+  color: #16a34a;
+  background: #f0fdf4;
+}
+.service-card__copy-btn:active {
+  transform: scale(0.96);
+}
+.service-card__copy-btn.copied {
+  border-color: #16a34a;
+  color: #16a34a;
+  background: #f0fdf4;
+  font-weight: 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .service-card { animation-duration: 1ms !important; }
+  .service-card, .service-card * { transition-duration: 1ms !important; }
 }

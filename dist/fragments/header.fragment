@@ -19,18 +19,20 @@
 </div>
 
 <!-- ==================== 顶部定制服务广告横幅 ==================== -->
-<div class="custom-service-banner" id="topAdBanner">
-  <button class="ad-close-btn" onclick="document.getElementById('topAdBanner').style.display='none'" title="关闭">&times;</button>
-  <div class="ad-banner-content">
-    <div class="ad-banner-icon">🔧</div>
-    <div class="ad-banner-text">
-      <span class="ad-banner-highlight">接受财务数据定制开发</span>
-      <span class="ad-banner-desc">多板块审计报告 · 批量数据采集 · 财务指标分析 · 可视化报告 · 行业对比</span>
+<div class="promo-banner" id="topAdBanner">
+  <div class="promo-banner__inner">
+    <div class="promo-banner__rail"></div>
+    <div class="promo-banner__icon" aria-hidden="true">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
     </div>
-    <div class="ad-banner-contact">
-      <span class="ad-wechat-badge">💬 微信咨询</span>
-      <span class="ad-wechat-id">zhh940417</span>
+    <div class="promo-banner__body">
+      <span class="promo-banner__title">接受财务数据定制开发</span>
+      <span class="promo-banner__sep" aria-hidden="true">·</span>
+      <span class="promo-banner__desc">审计报告 · 批量采集 · 指标分析 · 可视化报告</span>
     </div>
+    <a class="promo-banner__cta" href="javascript:void(0)" onclick="navigator.clipboard&&navigator.clipboard.writeText('zhh940417');this.textContent='已复制 ✓';setTimeout(()=>this.textContent='微信咨询 zhh940417',1500)">
+      微信咨询 zhh940417
+    </a>
+    <button class="promo-banner__close" onclick="document.getElementById('topAdBanner').style.display='none'" aria-label="关闭">&times;</button>
   </div>
-  <div class="ad-banner-shimmer"></div>
 </div>
