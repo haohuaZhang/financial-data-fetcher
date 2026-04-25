@@ -81,7 +81,7 @@ body {
 /* 当顶部广告横幅存在时，自动缩减主容器高度 */
 .promo-banner ~ .main-container,
 .promo-banner + .main-container {
-  height: calc(100vh - 56px - 44px);
+  height: calc(100vh - 56px - 40px);
 }
 
 /* ==================== 左侧配置面板 ==================== */
@@ -2646,13 +2646,14 @@ body::after {
   font-size: 0.85rem;
 }
 
-/* ==================== 顶部推广横幅 (SaaS-style, 居中) ==================== */
+/* ==================== 顶部动态广告横幅 ==================== */
 .promo-banner {
   position: relative;
-  background: #f0fdf4;
-  border-bottom: 1px solid #bbf7d0;
+  background: linear-gradient(90deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   z-index: 99;
-  animation: promo-slide-in 240ms ease-out both;
+  animation: promo-slide-in 300ms ease-out both;
+  overflow: hidden;
 }
 @keyframes promo-slide-in {
   from { transform: translateY(-100%); opacity: 0; }
@@ -2661,105 +2662,154 @@ body::after {
 .promo-banner__inner {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 10px;
-  padding: 0 24px;
-  height: 44px;
-  max-width: 100%;
+  padding: 0 20px;
+  height: 40px;
   position: relative;
 }
-.promo-banner__rail {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: #16a34a;
-  border-radius: 0 2px 2px 0;
-}
-.promo-banner__body {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  justify-content: center;
-  min-width: 0;
-}
-.promo-banner__label {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #15803d;
-  white-space: nowrap;
+/* 左侧渐变流光标签 */
+.promo-banner__badge {
   flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #22c55e, #16a34a, #15803d);
+  background-size: 200% 200%;
+  color: #fff;
+  letter-spacing: 0.03em;
+  animation: badge-shimmer 3s ease infinite;
+  white-space: nowrap;
+}
+@keyframes badge-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+/* 分隔圆点 */
+.promo-banner__dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+/* 跑马灯区域 */
+.promo-banner__marquee {
+  flex: 1;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+}
+.promo-banner__track {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  white-space: nowrap;
+  animation: marquee-scroll 40s linear infinite;
+  will-change: transform;
+}
+.promo-banner__track:hover {
+  animation-play-state: paused;
+}
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.promo-banner__item {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.75);
+  padding: 0 4px;
+  letter-spacing: 0.01em;
 }
 .promo-banner__sep {
-  color: #86efac;
-  font-size: 0.82rem;
-  flex-shrink: 0;
+  font-size: 0.55rem;
+  color: #22c55e;
+  padding: 0 8px;
+  opacity: 0.7;
 }
-.promo-banner__rotator {
-  font-size: 0.8rem;
-  color: #374151;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 180px;
-  text-align: center;
-}
+/* 脉冲 CTA 按钮 */
 .promo-banner__cta {
+  position: relative;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   padding: 5px 14px;
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 600;
   font-family: 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
   color: #fff;
-  background: #16a34a;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
   border-radius: 6px;
   text-decoration: none;
   white-space: nowrap;
-  letter-spacing: 0.01em;
-  transition: background-color 150ms ease, transform 120ms ease;
+  letter-spacing: 0.02em;
   cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  z-index: 1;
 }
 .promo-banner__cta:hover {
-  background: #15803d;
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35);
 }
 .promo-banner__cta:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
+.promo-banner__cta.copied {
+  background: linear-gradient(135deg, #15803d, #166534);
+}
+/* 脉冲光环 */
+.promo-banner__cta::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 2px solid rgba(34, 197, 94, 0.5);
+  opacity: 0;
+  transform: scale(1);
+  animation: pulse-ring 2.5s ease-out infinite;
+  z-index: -1;
+}
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.5; }
+  70% { transform: scale(1.4); opacity: 0; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+/* 关闭按钮 */
 .promo-banner__close {
   position: absolute;
-  right: 12px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
   appearance: none;
   border: 0;
-  background: transparent;
-  padding: 6px;
-  border-radius: 6px;
-  color: #9ca3af;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   line-height: 1;
   flex-shrink: 0;
-  transition: background-color 120ms ease, color 120ms ease, transform 120ms ease;
+  transition: background-color 120ms ease, color 120ms ease;
+  z-index: 2;
 }
 .promo-banner__close:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: #374151;
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
 }
 .promo-banner__close:active {
-  transform: translateY(-50%) scale(0.92);
+  transform: translateY(-50%) scale(0.9);
 }
 .promo-banner__close:focus-visible {
-  outline: 2px solid #16a34a;
+  outline: 2px solid #22c55e;
   outline-offset: 2px;
 }
 @media (prefers-reduced-motion: reduce) {
   .promo-banner { animation-duration: 1ms !important; }
+  .promo-banner__badge { animation: none !important; }
+  .promo-banner__track { animation-duration: 80s !important; }
+  .promo-banner__cta::after { animation: none !important; opacity: 0.2; }
   .promo-banner, .promo-banner * { transition-duration: 1ms !important; }
 }
 
