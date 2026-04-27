@@ -1,6 +1,6 @@
 (() => {
   const assetBase = window.__APP_ASSET_BASE__ || '.';
-  const assetVersion = window.__APP_VERSION__ || '20260415';
+  const assetVersion = window.__APP_VERSION__ || '20260427';
   const withVersion = path => `${assetBase}/${path}?v=${assetVersion}`;
   const fragmentPaths = [
     withVersion('fragments/decorations.fragment'),

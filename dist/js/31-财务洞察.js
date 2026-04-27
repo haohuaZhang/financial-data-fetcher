@@ -72,20 +72,23 @@ function buildFinanceSummary() {
   };
 }
 
+// 安全的翻译函数，避免全局 t 被覆盖
+function ft(key, fallback) { try { return getThemeText(key) || fallback || key; } catch(e) { return fallback || key; } }
+
 function buildFinanceAlerts(summary) {
-  if (summary.fileCount === 0) return [{ level: 'success', text: t('finance-no-data', '暂无数据，开始采集后将自动生成财务洞察') }];
+  if (summary.fileCount === 0) return [{ level: 'success', text: ft('finance-no-data', '暂无数据，开始采集后将自动生成财务洞察') }];
   const alerts = [];
   for (const metric of summary.metrics) {
     const s = metric.snapshot;
     if (!s) continue;
     if (s.rate !== null && Math.abs(s.rate) >= 20) alerts.push({ level: s.rate > 0 ? 'success' : 'danger', text: `${metric.label} 波动 ${s.rate > 0 ? '+' : ''}${s.rate.toFixed(2)}%` });
-    if (metric.key === 'profit' && s.current < 0) alerts.push({ level: 'danger', text: `${t('finance-profit-negative', '净利润为负')}：${formatFinanceNumber(s.current)}` });
+    if (metric.key === 'profit' && s.current < 0) alerts.push({ level: 'danger', text: `${ft('finance-profit-negative', '净利润为负')}：${formatFinanceNumber(s.current)}` });
     if (metric.key === 'assets' && summary.metrics.find(m => m.key === 'liabilities')?.snapshot) {
       const liabilities = summary.metrics.find(m => m.key === 'liabilities').snapshot.current;
-      if (Number.isFinite(liabilities) && Number.isFinite(s.current) && liabilities > s.current) alerts.push({ level: 'warn', text: t('finance-liabilities-warning', '负债合计高于总资产，建议重点复核') });
+      if (Number.isFinite(liabilities) && Number.isFinite(s.current) && liabilities > s.current) alerts.push({ level: 'warn', text: ft('finance-liabilities-warning', '负债合计高于总资产，建议重点复核') });
     }
   }
-  if (alerts.length === 0) alerts.push({ level: 'success', text: t('finance-stable', '暂无明显异常，整体数据稳定') });
+  if (alerts.length === 0) alerts.push({ level: 'success', text: ft('finance-stable', '暂无明显异常，整体数据稳定') });
   return alerts.slice(0, 8);
 }
 
@@ -100,7 +103,7 @@ function renderFinanceMetricTable(summary) {
   if (!body) return;
   const rows = summary.metrics.filter(m => m.snapshot);
   if (rows.length === 0) {
-    body.innerHTML = '<tr><td colspan="6" class="finance-table-empty">' + t('finance-no-data-short', '暂无数据') + '</td></tr>';
+    body.innerHTML = '<tr><td colspan="6" class="finance-table-empty">' + ft('finance-no-data-short', '暂无数据') + '</td></tr>';
     return;
   }
   body.innerHTML = rows.map(metric => {

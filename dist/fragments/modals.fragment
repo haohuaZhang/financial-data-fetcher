@@ -1,5 +1,5 @@
 <!-- ==================== 预览模态框 ==================== -->
-<div class="modal-overlay" id="previewModal">
+<div class="modal-overlay hidden" id="previewModal">
   <div class="modal-container">
     <div class="modal-header">
       <div class="modal-title" id="previewTitle">预览</div>
@@ -10,7 +10,7 @@
 </div>
 
 <!-- ==================== 对比模态框 ==================== -->
-<div class="modal-overlay" id="compareModal">
+<div class="modal-overlay hidden" id="compareModal">
   <div class="modal-container" style="max-width: 96vw; width: 96vw;">
     <div class="modal-header">
       <div class="modal-title" id="compareTitle">数据对比</div>

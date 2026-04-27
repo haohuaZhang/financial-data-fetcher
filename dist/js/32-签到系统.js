@@ -40,6 +40,9 @@ function doCheckin() {
   data.lastCheckin = today;
   saveCheckinData(data);
   updateHeaderPoints();
+  // 签到后更新横幅积分提示
+  var hint = document.getElementById('checkinBannerHint');
+  if (hint) hint.textContent = '\uD83E\uDE99 ' + data.points + '积分 | 签到领积分可延用体验';
   renderCheckinModal();
 }
 

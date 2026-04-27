@@ -1265,9 +1265,11 @@ function getThemeText(key) {
   return THEMES.normal.texts[key] || key;
 }
 
-function t(key) {
-  return getThemeText(key);
+function t(key, fallback) {
+  return getThemeText(key) || fallback || key;
 }
+// 防止全局 t 被覆盖
+Object.defineProperty(window, 't', { value: t, writable: false, configurable: false });
 
 function getThemeProxyName(proxyKey) {
   const theme = THEMES[currentThemeId];
