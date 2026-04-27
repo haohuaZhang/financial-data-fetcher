@@ -54,6 +54,8 @@ async function getAnnouncementList(stockId, reportType, years) {
 
       for (const year of years) {
         if (text.includes('报告') && text.includes(String(year))) {
+          var excludeKeywords = ['社会责任', '内部控制', '审计报告', '评估报告', '鉴证报告'];
+          if (excludeKeywords.some(function(kw) { return text.includes(kw); })) continue;
           const fullUrl = href.startsWith('http') ? href : `https://vip.stock.finance.sina.com.cn/${href}`;
           if (!results.some(r => r.url === fullUrl)) {
             results.push({ title: text, url: fullUrl, year });

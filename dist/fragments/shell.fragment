@@ -62,7 +62,7 @@
       </div>
       <div class="section-body">
         <div class="form-group">
-          <label class="form-label" data-i18n="label-company">公司名称（每行一个）</label>
+          <label class="form-label" data-i18n="label-company">公司名称（逗号分隔）</label>
           <textarea id="companies" placeholder="艾为电子&#10;圣邦股份&#10;思瑞浦">艾为电子
 圣邦股份</textarea>
         </div>
@@ -94,7 +94,7 @@
       </div>
       <div class="section-body">
         <div class="form-group">
-          <label class="form-label" data-i18n="label-table">表格名称（每行一个）</label>
+          <label class="form-label" data-i18n="label-table">表格名称（逗号分隔）</label>
           <textarea id="targetTables" class="small" placeholder="合并利润表&#10;合并资产负债表">合并利润表
 合并资产负债表</textarea>
         </div>

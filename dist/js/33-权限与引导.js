@@ -2,9 +2,8 @@
 
 /* ---------- 权限守卫 ---------- */
 function requirePremium() {
-  // 正式用户（permanent模式）直接放行，不弹窗
-  if (sessionStorage.getItem('secretVerified') === 'true'
-      && sessionStorage.getItem('secretVerifiedMode') !== 'experience') {
+  // 正式用户（permanent模式）和体验用户（experience模式）直接放行
+  if (sessionStorage.getItem('secretVerified') === 'true') {
     return true;
   }
   showUpgradeModal();
@@ -90,7 +89,7 @@ function showGuideOverlay() {
   var rect = targetEl.getBoundingClientRect();
   overlay.innerHTML = '\
     <div class="guide-highlight" style="top:' + (rect.top - 4) + 'px;left:' + (rect.left - 4) + 'px;width:' + (rect.width + 8) + 'px;height:' + (rect.height + 8) + 'px;"></div>\
-    <div class="guide-tooltip guide-tooltip--' + info.pos + '" style="top:' + (rect.bottom + 12) + 'px;left:' + (rect.left + rect.width / 2) + 'px;">\
+    <div class="guide-tooltip guide-tooltip--' + info.pos + '" style="top:' + (rect.bottom + 12 + window.scrollY) + 'px;left:' + (rect.left + rect.width / 2 + window.scrollX) + 'px;">\
       <div class="guide-tooltip__title">' + info.title + '</div>\
       <div class="guide-tooltip__desc">' + info.desc + '</div>\
       <div class="guide-tooltip__footer">\

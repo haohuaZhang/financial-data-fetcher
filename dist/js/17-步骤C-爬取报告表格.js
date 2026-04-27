@@ -63,6 +63,7 @@ async function fetchReportTables(reportUrl, targetTables, nameLengthLimit, needP
  */
 function isSimilarRow(row1, row2) {
   if (!row1 || !row2) return false;
+  if (row1.length === 0) return false;
   if (row1.length !== row2.length) return false;
   let matchCount = 0;
   for (let i = 0; i < row1.length; i++) {

@@ -168,6 +168,7 @@ function exportFinanceSummary() {
   }
   const blob = new Blob([lines.join('\n') + '\n'], { type: 'text/markdown;charset=utf-8' });
   saveAs(blob, `财务洞察摘要_${new Date().toISOString().slice(0, 10)}.md`);
+  showBottomToast('✅ 摘要已导出');
 }
 
 window.refreshFinanceInsights = refreshFinanceInsights;

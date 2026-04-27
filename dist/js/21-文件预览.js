@@ -1,4 +1,5 @@
 // ==================== 文件预览 ====================
+var __pdfRenderVersion = 0;
 
 async function getPdfJsLib() {
   if (window.pdfjsLib) return window.pdfjsLib;
@@ -67,9 +68,11 @@ async function renderPdfCanvasPreview({ body, fileName, sourceText, downloadUrl,
       wrap.appendChild(loadingBlock);
 
       Promise.resolve().then(async () => {
+        var renderVersion = __pdfRenderVersion;
         if (!document.body.contains(body)) return;
         loadingBlock.remove();
         for (let pageNum = 2; pageNum <= pageCount; pageNum++) {
+          if (__pdfRenderVersion !== renderVersion) return;
           if (!document.body.contains(body)) return;
           try {
             const item = await renderPage(pageNum);
@@ -104,6 +107,7 @@ async function previewFile(fileId) {
   title.textContent = file.name;
   body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);"><span class="spinner"></span> ' + t('file-preview-loading') + '</div>';
   modal.classList.add('active');
+  __pdfRenderVersion++;
 
   if (file.type === 'excel') {
     try {
@@ -427,6 +431,7 @@ function getFilteredExcelSectionRows(section) {
 }
 
 function closePreviewModal() {
+  __pdfRenderVersion++;
   const modal = document.getElementById('previewModal');
   modal.classList.remove('active');
   const body = document.getElementById('previewBody');

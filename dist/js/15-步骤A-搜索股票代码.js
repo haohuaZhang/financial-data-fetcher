@@ -21,8 +21,12 @@ async function searchStockCode(companyName) {
     // 兜底: 取第一个结果
     if (json && json.QuotationCodeTable && json.QuotationCodeTable.Data && json.QuotationCodeTable.Data.length > 0) {
       const code = json.QuotationCodeTable.Data[0].Code;
-      addLog(`${t('log-found-stock')}: ${code}`, 'success');
-      return code;
+      if (!/^\d{6}$/.test(code)) {
+        addLog(`${t('log-stock-not-found')}: first result code "${code}" is not a valid 6-digit A-share code`, 'warn');
+      } else {
+        addLog(`${t('log-found-stock')}: ${code}`, 'success');
+        return code;
+      }
     }
   } catch (e) {
     addLog(`${t('log-stock-search-fail')}: ${e.message}`, 'warn');
