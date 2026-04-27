@@ -2954,3 +2954,186 @@ body::after {
   .service-card { animation-duration: 1ms !important; }
   .service-card, .service-card * { transition-duration: 1ms !important; }
 }
+
+/* ==================== 新手引导 ==================== */
+.guide-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); z-index: 10000;
+  pointer-events: auto;
+}
+.guide-highlight {
+  position: absolute; border: 3px solid #4f46e5;
+  border-radius: 6px; background: transparent;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+  z-index: 10001; pointer-events: none;
+  transition: all 0.3s ease;
+}
+.guide-tooltip {
+  position: absolute; transform: translateX(-50%);
+  background: #fff; border-radius: 10px;
+  padding: 16px 20px; min-width: 260px; max-width: 340px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+  z-index: 10002; pointer-events: auto;
+}
+.guide-tooltip__title {
+  font-size: 0.95rem; font-weight: 700; color: #1a1a1a; margin-bottom: 6px;
+}
+.guide-tooltip__desc {
+  font-size: 0.82rem; color: #6b6b6b; line-height: 1.5; margin-bottom: 12px;
+}
+.guide-tooltip__footer {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.guide-tooltip__step {
+  font-size: 0.75rem; color: #9b9b9b;
+}
+.guide-tooltip__btn {
+  background: #4f46e5; color: #fff; border: none; border-radius: 6px;
+  padding: 6px 16px; font-size: 0.82rem; cursor: pointer; font-weight: 600;
+}
+.guide-tooltip__btn:hover { background: #4338ca; }
+.guide-tooltip__skip {
+  background: none; border: none; color: #9b9b9b;
+  font-size: 0.78rem; cursor: pointer; text-decoration: underline;
+}
+
+/* ==================== 升级弹窗 ==================== */
+.modal-overlay { display: none; }
+.modal-overlay.active {
+  display: flex; align-items: center; justify-content: center;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+.upgrade-modal {
+  background: #fff; border-radius: 16px; padding: 32px;
+  max-width: 400px; width: 90%; text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: slideUp 0.3s ease;
+}
+.upgrade-modal__icon { font-size: 3rem; margin-bottom: 12px; }
+.upgrade-modal__title {
+  font-size: 1.3rem; font-weight: 700; color: #1a1a1a; margin-bottom: 8px;
+}
+.upgrade-modal__desc {
+  font-size: 0.85rem; color: #6b6b6b; margin-bottom: 16px; line-height: 1.5;
+}
+.upgrade-modal__features {
+  text-align: left; list-style: none; margin-bottom: 20px;
+  padding: 12px 16px; background: var(--bg-secondary); border-radius: 8px;
+}
+.upgrade-modal__features li {
+  font-size: 0.82rem; color: #1a1a1a; padding: 4px 0;
+}
+.upgrade-modal__actions { display: flex; gap: 10px; justify-content: center; }
+.btn-upgrade-primary {
+  background: #4f46e5; color: #fff; border: none; border-radius: 8px;
+  padding: 10px 24px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+}
+.btn-upgrade-primary:hover { background: #4338ca; }
+.btn-upgrade-secondary {
+  background: none; border: 1px solid var(--border-color); border-radius: 8px;
+  padding: 10px 24px; font-size: 0.9rem; color: var(--text-secondary); cursor: pointer;
+}
+.btn-upgrade-secondary:hover { background: var(--bg-hover); }
+
+/* ==================== 权限徽标 ==================== */
+.pro-lock-badge {
+  font-size: 0.65rem; margin-left: 4px; vertical-align: middle;
+  opacity: 0.7;
+}
+
+/* ==================== 财务子Tab ==================== */
+.finance-sub-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid var(--border-color);
+  margin: 0 0 16px 0;
+}
+.finance-sub-tab {
+  flex: 1; padding: 10px 16px; border: none; background: none;
+  font-size: 0.85rem; color: var(--text-secondary); cursor: pointer;
+  border-bottom: 2px solid transparent; transition: all 0.2s;
+  font-weight: 500;
+}
+.finance-sub-tab:hover { color: var(--accent); background: var(--accent-dim); }
+.finance-sub-tab.active {
+  color: var(--accent); border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+.finance-sub-panel { display: none; }
+.finance-sub-panel.active { display: block; }
+
+/* ==================== 图表面板 ==================== */
+.chart-panel { padding: 0 4px; }
+.chart-section {
+  margin-bottom: 16px; background: var(--bg-card);
+  border: 1px solid var(--border-color); border-radius: var(--radius);
+  overflow: hidden;
+}
+.chart-section__header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; font-size: 0.82rem; font-weight: 600;
+  color: var(--text-primary); border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+.chart-container { width: 100%; }
+
+/* ==================== 使用指南 ==================== */
+.usage-guide-wrap { margin-top: 8px; }
+.usage-guide-toggle {
+  font-size: 0.78rem; color: var(--text-muted); cursor: pointer;
+  padding: 6px 0; user-select: none; transition: color 0.2s;
+}
+.usage-guide-toggle:hover { color: var(--accent); }
+.usage-guide-content {
+  display: none; padding: 10px 14px; font-size: 0.78rem;
+  color: var(--text-secondary); line-height: 1.6;
+  background: var(--bg-secondary); border-radius: var(--radius);
+  margin-bottom: 8px;
+}
+.usage-guide-content.open { display: block; }
+.usage-guide-content p { margin-bottom: 4px; }
+
+/* ==================== 模板下拉 ==================== */
+.template-dropdown-wrap { position: relative; }
+.template-dropdown {
+  display: none; position: absolute; top: 100%; right: 0;
+  background: #fff; border: 1px solid var(--border-color);
+  border-radius: var(--radius); box-shadow: var(--shadow-lg);
+  z-index: 100; min-width: 160px; overflow: hidden;
+  margin-top: 4px;
+}
+.template-dropdown.show { display: block; }
+.template-dropdown-item {
+  padding: 10px 16px; font-size: 0.8rem; color: var(--text-primary);
+  cursor: pointer; transition: background 0.15s; white-space: nowrap;
+}
+.template-dropdown-item:hover {
+  background: var(--accent-dim); color: var(--accent);
+}
+
+/* ==================== 对比表格增强 ==================== */
+.compare-table th.sortable {
+  cursor: pointer; user-select: none; position: relative;
+  padding-right: 20px;
+}
+.compare-table th.sortable:hover {
+  background: var(--accent-dim); color: var(--accent);
+}
+.compare-table th.sortable .sort-arrow::after {
+  content: '⇅'; font-size: 0.7rem; margin-left: 4px; opacity: 0.4;
+}
+.compare-table th.sort-asc .sort-arrow::after {
+  content: '↑'; opacity: 1; color: var(--accent);
+}
+.compare-table th.sort-desc .sort-arrow::after {
+  content: '↓'; opacity: 1; color: var(--accent);
+}
+
+/* ==================== 动画 ==================== */
+@keyframes fadeIn {
+  from { opacity: 0; } to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

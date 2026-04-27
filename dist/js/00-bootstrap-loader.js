@@ -1,6 +1,6 @@
 (() => {
   const assetBase = window.__APP_ASSET_BASE__ || '.';
-  const assetVersion = window.__APP_VERSION__ || '20260427';
+  const assetVersion = window.__APP_VERSION__ || '20260427c';
   const withVersion = path => `${assetBase}/${path}?v=${assetVersion}`;
   const fragmentPaths = [
     withVersion('fragments/decorations.fragment'),
@@ -29,6 +29,7 @@
       '31-财务洞察.js',
       '30-section-30.js',
       '32-签到系统.js',
+      '33-权限与引导.js',
     ],
     fetch: [
       '11-CORS代理请求-文本内容-智能轮换.js',
@@ -50,10 +51,14 @@
     ],
     compare: [
       '29-数据对比功能.js',
+      '34-Excel模板生成.js',
     ],
     settings: [
       '26-测试自定义代理.js',
       '27-配置模板功能.js',
+    ],
+    chart: [
+      '35-可视化图表报告.js',
     ],
   };
 
@@ -80,6 +85,13 @@
     saveConfigTemplate: ['shell', 'settings'],
     loadConfigTemplate: ['shell', 'settings'],
     deleteConfigTemplate: ['shell', 'settings'],
+    openQuickCompare: ['shell', 'compare'],
+    generateDupontTemplate: ['shell', 'compare'],
+    generatePeerCompareTemplate: ['shell', 'compare'],
+    generateTrendTemplate: ['shell', 'compare'],
+    exportCompareExcel: ['shell', 'compare'],
+    switchToChartTab: ['shell', 'chart'],
+    exportChartPng: ['shell', 'chart'],
   };
 
   const loadedGroups = new Set();

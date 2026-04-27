@@ -63,12 +63,29 @@
           <div class="file-toolbar-left">
             <button class="btn-file-action" onclick="selectAllFiles()" data-i18n="btn-select-all">全选</button>
             <button class="btn-file-action" onclick="deselectAllFiles()" data-i18n="btn-deselect-all">取消全选</button>
+            <button class="btn-file-action" onclick="openQuickCompare()" data-i18n="btn-quick-compare">⚡快速对比</button>
           </div>
           <div class="file-toolbar-right">
+            <div class="template-dropdown-wrap">
+              <button class="btn-file-action" onclick="this.nextElementSibling.classList.toggle('show')" data-i18n="btn-template-export">📋模板导出</button>
+              <div class="template-dropdown">
+                <div class="template-dropdown-item" onclick="generateDupontTemplate();this.closest('.template-dropdown').classList.remove('show');">杜邦分析模板</div>
+                <div class="template-dropdown-item" onclick="generatePeerCompareTemplate();this.closest('.template-dropdown').classList.remove('show');">同行对比模板</div>
+                <div class="template-dropdown-item" onclick="generateTrendTemplate();this.closest('.template-dropdown').classList.remove('show');">多年趋势模板</div>
+              </div>
+            </div>
             <button class="btn-file-action" onclick="openCompareModal()" data-i18n="btn-data-compare">📊 数据对比</button>
             <button class="btn-file-action primary-action" id="btnDownloadZip" onclick="downloadSelectedZip()" disabled>
               <span data-i18n="btn-download-zip">打包下载 (ZIP)</span>
             </button>
+          </div>
+        </div>
+        <div class="usage-guide-wrap">
+          <div class="usage-guide-toggle" onclick="toggleUsageGuide('fileUsageGuide')">⎘ 使用指南</div>
+          <div class="usage-guide-content" id="fileUsageGuide">
+            <p><strong>快速对比</strong>：直接对比已采集的所有Excel文件关键指标，支持排序和导出。</p>
+            <p><strong>模板导出</strong>：一键生成杜邦分析、同行对比、多年趋势等专业Excel模板。</p>
+            <p><strong>数据对比</strong>：选择2个以上文件进行逐项财务指标对比分析。</p>
           </div>
         </div>
         <div class="file-list-container" id="fileListContainer">
@@ -93,6 +110,11 @@
             <button class="btn-file-action primary-action" onclick="exportFinanceSummary()" data-i18n="finance-export">导出摘要</button>
           </div>
         </div>
+        <div class="finance-sub-tabs">
+          <button class="finance-sub-tab active" data-sub="insight" onclick="switchFinanceSubTab('insight')">&#128202; 洞察</button>
+          <button class="finance-sub-tab" data-sub="chart" onclick="switchToChartTab()">&#128200; 图表<span class="pro-lock-badge">&#128081;</span></button>
+        </div>
+        <div class="finance-sub-panel active" data-sub="insight">
         <div class="finance-insight-grid">
           <div class="finance-card"><span data-i18n="finance-file-count">文件总数</span><strong id="fiFileCount">0</strong></div>
           <div class="finance-card"><span data-i18n="finance-excel-count">Excel</span><strong id="fiExcelCount">0</strong></div>
@@ -128,7 +150,41 @@
         <div class="finance-alerts" id="financeAlerts">
           <div class="finance-empty" data-i18n="finance-alert-empty">暂无异常，等你开始采集</div>
         </div>
-      </div>
+        </div>
+        <div class="finance-sub-panel" data-sub="chart">
+          <div class="chart-panel">
+            <div class="chart-section">
+              <div class="chart-section__header">
+                <span>多年趋势（折线图）</span>
+                <button class="btn-file-action" onclick="exportChartPng('chartTrend')" style="font-size:0.7rem;padding:2px 8px;">导出PNG</button>
+              </div>
+              <div class="chart-container" id="chartTrend" style="height:280px;"></div>
+            </div>
+            <div class="chart-section">
+              <div class="chart-section__header">
+                <span>同行对比（柱状图）</span>
+                <button class="btn-file-action" onclick="exportChartPng('chartBarCompare')" style="font-size:0.7rem;padding:2px 8px;">导出PNG</button>
+              </div>
+              <div class="chart-container" id="chartBarCompare" style="height:280px;"></div>
+            </div>
+            <div class="chart-section">
+              <div class="chart-section__header">
+                <span>综合指标（雷达图）</span>
+                <button class="btn-file-action" onclick="exportChartPng('chartRadar')" style="font-size:0.7rem;padding:2px 8px;">导出PNG</button>
+              </div>
+              <div class="chart-container" id="chartRadar" style="height:320px;"></div>
+            </div>
+            <div class="usage-guide-wrap">
+              <div class="usage-guide-toggle" onclick="toggleUsageGuide('chartUsageGuide')">&#9432; 图表使用指南</div>
+              <div class="usage-guide-content" id="chartUsageGuide">
+                <p><strong>折线图</strong>：展示营业收入、净利润、经营现金流多年变化趋势。</p>
+                <p><strong>柱状图</strong>：直观对比不同公司的核心财务指标。</p>
+                <p><strong>雷达图</strong>：多维度综合评估公司财务健康状况。</p>
+                <p>点击「导出PNG」可将图表保存为高清图片。</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
       <div class="collect-overview-panel">
         <div class="collect-overview-head" data-i18n="collect-overview-title">采集概览</div>

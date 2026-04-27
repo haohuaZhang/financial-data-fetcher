@@ -18,3 +18,24 @@ function switchTab(tabName) {
     refreshFinanceInsights();
   }
 }
+
+function switchFinanceSubTab(subName) {
+  var tabs = document.querySelectorAll('.finance-sub-tab');
+  tabs.forEach(function(tab) {
+    tab.classList.toggle('active', tab.getAttribute('data-sub') === subName);
+  });
+  var panels = document.querySelectorAll('.finance-sub-panel');
+  panels.forEach(function(panel) {
+    panel.classList.toggle('active', panel.getAttribute('data-sub') === subName);
+  });
+  if (subName === 'chart') {
+    if (!requirePremium()) return;
+    if (typeof loadECharts === 'function') {
+      loadECharts(function() {
+        if (typeof renderAllCharts === 'function') {
+          setTimeout(renderAllCharts, 100);
+        }
+      });
+    }
+  }
+}
