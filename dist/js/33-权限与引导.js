@@ -2,7 +2,11 @@
 
 /* ---------- 权限守卫 ---------- */
 function requirePremium() {
-  if (window.__premium) return true;
+  // 正式用户（permanent模式）直接放行，不弹窗
+  if (sessionStorage.getItem('secretVerified') === 'true'
+      && sessionStorage.getItem('secretVerifiedMode') !== 'experience') {
+    return true;
+  }
   showUpgradeModal();
   return false;
 }
@@ -26,7 +30,7 @@ function showUpgradeModal() {
         <li>&#9989; 优先技术支持</li>\
       </ul>\
       <div class="upgrade-modal__actions">\
-        <button class="btn-upgrade-primary" onclick="closeUpgradeModal();window.__premium=true;">立即升级</button>\
+        <button class="btn-upgrade-primary" onclick="closeUpgradeModal();document.getElementById(\'secretInput\')&&document.getElementById(\'secretInput\').focus();">输入暗号升级</button>\
         <button class="btn-upgrade-secondary" onclick="closeUpgradeModal();">稍后再说</button>\
       </div>\
     </div>';
