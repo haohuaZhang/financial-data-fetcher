@@ -217,6 +217,7 @@ const THEMES = {
     proxyNames: {
       'codetabs': '⭐CodeTabs', 'cors-lol': 'cors.lol',
       'allorigins-json': 'AllOrigins', 'allorigins-raw': 'AllOrigins(Raw)',
+      'corsproxy-io': 'CorsProxy.io', 'x2u': 'X2U', 'killcors': 'KillCors',
     },
   },
   xianxia: {
@@ -424,6 +425,7 @@ const THEMES = {
     proxyNames: {
       'codetabs': '⭐大弟子·凌风', 'cors-lol': '二弟子·青云',
       'allorigins-json': '三弟子·明月', 'allorigins-raw': '四弟子·流云',
+      'corsproxy-io': '五弟子·铁山', 'x2u': '六弟子·灵溪', 'killcors': '七弟子·破晓',
     },
   },
   creepy: {
@@ -631,6 +633,7 @@ const THEMES = {
     proxyNames: {
       'codetabs': '⭐暗探·影刃', 'cors-lol': '暗探·幽瞳',
       'allorigins-json': '暗探·血鸦', 'allorigins-raw': '暗探·骨笛',
+      'corsproxy-io': '暗探·蛛后', 'x2u': '暗探·冥河', 'killcors': '暗探·无面',
     },
   },
   doomsday: {
@@ -838,6 +841,7 @@ const THEMES = {
     proxyNames: {
       'codetabs': '⭐侦察兵·猎鹰', 'cors-lol': '侦察兵·幽灵',
       'allorigins-json': '侦察兵·回声', 'allorigins-raw': '侦察兵·铁壁',
+      'corsproxy-io': '侦察兵·飞狐', 'x2u': '侦察兵·暗影', 'killcors': '侦察兵·游侠',
     },
   },
   fantasy: {
@@ -1045,6 +1049,7 @@ const THEMES = {
     proxyNames: {
       'codetabs': '⭐使者·星陨', 'cors-lol': '使者·月华',
       'allorigins-json': '使者·日曜', 'allorigins-raw': '使者·雷震',
+      'corsproxy-io': '使者·风行', 'x2u': '使者·冰魄', 'killcors': '使者·炎帝',
     },
   },
 };

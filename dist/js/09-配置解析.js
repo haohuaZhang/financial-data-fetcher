@@ -1,7 +1,20 @@
 // ==================== 配置解析 ====================
 function getRawConfig() {
   // BUG-A04: 获取原始配置（不应用散修阉割），用于保存
-  const splitCommaList = value => value.split(/[,\n，]+/).map(s => s.trim()).filter(Boolean);
+  // 智能分割：支持逗号、换行、引号分隔
+  // 例如: "艾为电子","圣邦股份" 或 '报告期内获得的研发成果','合并资产负债表'
+  const splitCommaList = value => {
+    // 先尝试匹配引号分隔的列表（单引号或双引号）
+    const quotedPattern = /['"]([^'"]+)['"]/g;
+    const quotedItems = [];
+    let match;
+    while ((match = quotedPattern.exec(value)) !== null) {
+      quotedItems.push(match[1].trim());
+    }
+    if (quotedItems.length > 0) return quotedItems;
+    // 回退到逗号/换行分割
+    return value.split(/[,\n，]+/).map(s => s.trim()).filter(Boolean);
+  };
   let companies = splitCommaList(document.getElementById('companies').value);
   let years = document.getElementById('years').value.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean);
   const targetTables = splitCommaList(document.getElementById('targetTables').value);

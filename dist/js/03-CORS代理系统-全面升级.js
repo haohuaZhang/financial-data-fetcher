@@ -3,22 +3,36 @@
 // 文本内容代理（用于HTML页面获取）
 // 按 2026-04-27 实测结果排序：可用性 + 速度 + 稳定性
 const textProxies = [
-  // ⭐⭐⭐ CodeTabs - 唯一完全可用，支持GET，速度稳定(~2s)
+  // ⭐⭐⭐ CodeTabs - 完全可用，速度稳定(~2s)，支持GET
   url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-  // ⭐⭐ cors.lol - 可用但有限流(429)，适合作为备用
+  // ⭐⭐ cors.lol - 可用但有限流(429)，限流后需等待
   url => `https://api.cors.lol/?url=${encodeURIComponent(url)}`,
-  // ⭐ AllOrigins(JSON) - 超时严重(~7-15s)，仅作为最后兜底
+  // ⭐⭐ AllOrigins(JSON) - 不稳定，有时超时(~7-15s)，成功时返回JSON
   url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+  // ⭐ AllOrigins(Raw) - 不稳定，成功时直接返回原文
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  // ⭐ CorsProxy.io - 被Cloudflare间歇性封禁(403)，偶尔可用
+  url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  // ⭐ X2U - 印度代理，有时404，恢复后可用
+  url => `https://cors.x2u.in/${url.replace(/^https?:\/\//, '')}`,
+  // ⭐ KillCors - 2026年3月重新上线，连接不稳定
+  url => `https://proxy.killcors.com/?url=${encodeURIComponent(url)}`,
 ];
 
 // 二进制内容代理（用于玉简获取）
 const binaryProxies = [
-  // ⭐⭐⭐ CodeTabs - 唯一完全可用，支持大文件(625KB)
+  // ⭐⭐⭐ CodeTabs - 完全可用，支持大文件(625KB)
   url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
   // ⭐⭐ cors.lol - 可用但有限流
   url => `https://api.cors.lol/?url=${encodeURIComponent(url)}`,
-  // ⭐ AllOrigins(Raw) - 超时严重，仅兜底
+  // ⭐ AllOrigins(Raw) - 不稳定，成功时直接返回二进制
   url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  // ⭐ CorsProxy.io - 间歇性可用
+  url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  // ⭐ X2U - 印度代理，恢复后可用
+  url => `https://cors.x2u.in/${url.replace(/^https?:\/\//, '')}`,
+  // ⭐ KillCors - 连接不稳定
+  url => `https://proxy.killcors.com/?url=${encodeURIComponent(url)}`,
 ];
 
 // 代理健康状态追踪
@@ -38,6 +52,9 @@ function getProxyName(proxyFn) {
     else if (host.includes('cors.lol')) proxyKey = 'cors-lol';
     else if (host.includes('allorigins') && url.includes('/get?')) proxyKey = 'allorigins-json';
     else if (host.includes('allorigins') && url.includes('/raw?')) proxyKey = 'allorigins-raw';
+    else if (host.includes('corsproxy.io')) proxyKey = 'corsproxy-io';
+    else if (host.includes('x2u')) proxyKey = 'x2u';
+    else if (host.includes('killcors')) proxyKey = 'killcors';
     if (proxyKey) return getThemeProxyName(proxyKey);
     return host;
   } catch (e) {
