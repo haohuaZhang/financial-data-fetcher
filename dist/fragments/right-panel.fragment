@@ -61,28 +61,29 @@
         </div>
         <div class="file-toolbar">
           <div class="file-toolbar-left">
-            <button class="btn-file-action" onclick="selectAllFiles()" data-i18n="btn-select-all">全选</button>
-            <button class="btn-file-action" onclick="deselectAllFiles()" data-i18n="btn-deselect-all">取消全选</button>
-            <button class="btn-file-action" onclick="typeof openQuickCompare==='function'?openQuickCompare():loadGroupThenRun('compare','openQuickCompare');">⚡快速对比</button>
+            <button class="btn-file-action" onclick="selectAllFiles()">全选</button>
+            <button class="btn-file-action" onclick="deselectAllFiles()">取消全选</button>
+            <button class="btn-file-action btn-delete" onclick="deleteSelectedFiles()" id="btnDeleteSelected" disabled>删除选中</button>
+            <button class="btn-file-action" onclick="handleQuickCompare()">快速对比</button>
           </div>
           <div class="file-toolbar-right">
             <div class="template-dropdown-wrap">
-              <button class="btn-file-action" onclick="this.nextElementSibling.classList.toggle('show')">📋模板导出</button>
-              <div class="template-dropdown">
-                <div class="template-dropdown-item" onclick="typeof generateDupontTemplate==='function'?generateDupontTemplate():loadGroupThenRun('compare','generateDupontTemplate');this.closest('.template-dropdown').classList.remove('show');">
+              <button class="btn-file-action" id="btnTemplateExport" onclick="toggleTemplateDropdown(event)">模板导出</button>
+              <div class="template-dropdown" id="templateDropdown">
+                <div class="template-dropdown-item" onclick="handleTemplateAction('generateDupontTemplate')">
                   <span class="template-dropdown-icon">📊</span> 杜邦分析模板
                 </div>
-                <div class="template-dropdown-item" onclick="typeof generatePeerCompareTemplate==='function'?generatePeerCompareTemplate():loadGroupThenRun('compare','generatePeerCompareTemplate');this.closest('.template-dropdown').classList.remove('show');">
+                <div class="template-dropdown-item" onclick="handleTemplateAction('generatePeerCompareTemplate')">
                   <span class="template-dropdown-icon">📋</span> 同行对比模板
                 </div>
-                <div class="template-dropdown-item" onclick="typeof generateTrendTemplate==='function'?generateTrendTemplate():loadGroupThenRun('compare','generateTrendTemplate');this.closest('.template-dropdown').classList.remove('show');">
+                <div class="template-dropdown-item" onclick="handleTemplateAction('generateTrendTemplate')">
                   <span class="template-dropdown-icon">📈</span> 多年趋势模板
                 </div>
               </div>
             </div>
-            <button class="btn-file-action" onclick="openCompareModal()" data-i18n="btn-data-compare">📊 数据对比</button>
+            <button class="btn-file-action" onclick="handleOpenCompareModal()">数据对比</button>
             <button class="btn-file-action primary-action" id="btnDownloadZip" onclick="downloadSelectedZip()" disabled>
-              <span data-i18n="btn-download-zip">打包下载 (ZIP)</span>
+              <span>打包下载 (ZIP)</span>
             </button>
           </div>
         </div>

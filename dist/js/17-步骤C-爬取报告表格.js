@@ -114,7 +114,12 @@ function findTablesInDoc(doc, tableName, nameLengthLimit) {
           let nextSibling = sibling.nextElementSibling;
           let wrapCount = 0;
           while (nextSibling && wrapCount < 10) {
-            // 跳过空的 <p></p> 段落（巨潮报告跨页时常见）
+            // 跳过 <p>/</p> 段落（巨潮报告跨页分隔符）
+            if (nextSibling.tagName === 'P' && nextSibling.textContent.trim() === '/') {
+              nextSibling = nextSibling.nextElementSibling;
+              continue;
+            }
+            // 跳过空的 <p></p> 段落
             if (nextSibling.tagName === 'P' && nextSibling.textContent.trim() === '') {
               nextSibling = nextSibling.nextElementSibling;
               continue;

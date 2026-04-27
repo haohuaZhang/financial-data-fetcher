@@ -16,6 +16,31 @@ function loadECharts(callback) {
 }
 
 /* ---------- 数据提取 ---------- */
+
+// 将 __latestExcelData 转换为数组格式
+// 输入: { "公司_年报": { "表名": [[row1], [row2]] } }
+// 输出: [{ name: "公司_年报", rows: [[row1], [row2]] }]
+function convertExcelDataToArray() {
+  var allData = window.__latestExcelData || {};
+  var result = [];
+  Object.keys(allData).forEach(function(sheetKey) {
+    var sheetData = allData[sheetKey];
+    if (!sheetData || typeof sheetData !== 'object') return;
+    // 合并所有表格的行
+    var allRows = [];
+    Object.keys(sheetData).forEach(function(tableName) {
+      var rows = sheetData[tableName];
+      if (Array.isArray(rows)) {
+        allRows = allRows.concat(rows);
+      }
+    });
+    if (allRows.length > 0) {
+      result.push({ name: sheetKey, rows: allRows });
+    }
+  });
+  return result;
+}
+
 function extractChartData(files, metricKey) {
   var metric = (typeof TEMPLATE_METRICS !== 'undefined') ? TEMPLATE_METRICS[metricKey] : null;
   if (!metric) return { names: [], values: [] };
@@ -75,11 +100,23 @@ function switchToChartTab() {
 function renderAllCharts() {
   if (!window.echarts) return;
   var files = convertExcelDataToArray();
-  if (files.length === 0) {
-    var containers = document.querySelectorAll('.chart-container');
-    containers.forEach(function(c) { c.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:0.85rem;">暂无数据</div>'; });
-    return;
-  }
+  var noDataHtml = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:0.85rem;">暂无数据，请先采集财务数据</div>';
+  
+  // 使用 getElementById 直接获取容器
+  var chartIds = ['chartTrend', 'chartBarCompare', 'chartRadar'];
+  chartIds.forEach(function(id) {
+    var container = document.getElementById(id);
+    if (container) {
+      if (files.length === 0) {
+        container.innerHTML = noDataHtml;
+      } else {
+        container.innerHTML = ''; // 清空以便渲染图表
+      }
+    }
+  });
+  
+  if (files.length === 0) return;
+  
   renderTrendChart(files);
   renderBarCompareChart(files);
   renderRadarChart(files);

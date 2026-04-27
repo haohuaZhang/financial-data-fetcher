@@ -3078,53 +3078,89 @@ body::after {
 .chart-container { width: 100%; }
 
 /* ==================== 使用指南（增强版） ==================== */
-.usage-guide-wrap { margin-top: 8px; }
+.usage-guide-wrap { margin-top: 12px; }
 .usage-guide-toggle {
-  font-size: 0.82rem; color: var(--accent); cursor: pointer;
-  padding: 8px 12px; user-select: none; transition: all 0.2s;
-  background: var(--bg-secondary); border-radius: var(--radius);
-  border: 1px dashed var(--border-color); font-weight: 500;
-  display: flex; align-items: center; gap: 6px;
+  font-size: 0.85rem; color: var(--accent); cursor: pointer;
+  padding: 10px 16px; user-select: none; transition: all 0.2s;
+  background: linear-gradient(135deg, var(--accent-dim) 0%, var(--bg-secondary) 100%);
+  border-radius: var(--radius); border: 2px solid var(--accent);
+  font-weight: 600; display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 .usage-guide-toggle:hover {
-  background: var(--accent-dim); border-color: var(--accent);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+  color: #fff; transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 .usage-guide-arrow {
-  font-size: 0.7rem; transition: transform 0.3s;
-  display: inline-block;
+  font-size: 0.75rem; transition: transform 0.3s;
+  display: inline-block; margin-left: auto;
 }
 .usage-guide-content {
-  display: none; padding: 16px; font-size: 0.8rem;
-  color: var(--text-secondary); line-height: 1.7;
-  background: var(--bg-card); border-radius: var(--radius);
-  margin-top: 8px; border: 1px solid var(--border-color);
+  display: none; padding: 20px; font-size: 0.82rem;
+  color: var(--text-secondary); line-height: 1.8;
+  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+  border-radius: var(--radius); margin-top: 10px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
 }
 .usage-guide-content.open { display: block; }
-.guide-steps { display: flex; flex-direction: column; gap: 14px; }
-.guide-step { display: flex; gap: 12px; }
+.guide-steps { display: flex; flex-direction: column; gap: 16px; }
+.guide-step {
+  display: flex; gap: 14px; padding: 12px;
+  background: var(--bg-card); border-radius: 8px;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s;
+}
+.guide-step:hover {
+  border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
 .guide-step-num {
-  flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
-  background: var(--accent); color: #fff; font-size: 0.75rem;
-  font-weight: 700; display: flex; align-items: center; justify-content: center;
-  margin-top: 2px;
+  flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent) 0%, #6366f1 100%);
+  color: #fff; font-size: 0.85rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
 }
 .guide-step-body { flex: 1; min-width: 0; }
 .guide-step-title {
-  font-size: 0.85rem; font-weight: 600; color: var(--text-primary);
-  margin-bottom: 4px;
+  font-size: 0.9rem; font-weight: 700; color: var(--text-primary);
+  margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
 }
 .guide-step-desc { color: var(--text-secondary); }
-.guide-step-desc p { margin-bottom: 4px; }
+.guide-step-desc p { margin-bottom: 6px; }
 .guide-step-desc ul {
-  margin: 4px 0 8px 16px; padding: 0;
-  list-style: disc;
+  margin: 6px 0 8px 18px; padding: 0; list-style: disc;
 }
-.guide-step-desc li { margin-bottom: 2px; }
-.guide-step-icon { font-size: 1.1rem; margin-bottom: 4px; }
+.guide-step-desc li { margin-bottom: 4px; }
+.guide-step-icon {
+  font-size: 1.2rem; margin-bottom: 6px;
+  display: inline-block; padding: 4px 8px;
+  background: var(--accent-dim); border-radius: 6px;
+}
 .guide-tip {
-  font-size: 0.75rem; color: var(--accent);
-  background: var(--accent-dim); padding: 4px 8px;
-  border-radius: 4px; margin-top: 4px; display: inline-block;
+  font-size: 0.78rem; color: var(--accent);
+  background: linear-gradient(135deg, var(--accent-dim) 0%, rgba(99, 102, 241, 0.1) 100%);
+  padding: 6px 12px; border-radius: 6px; margin-top: 8px;
+  display: inline-block; border-left: 3px solid var(--accent);
+  font-weight: 500;
+}
+.guide-step-img {
+  margin-top: 8px; border-radius: 6px;
+  border: 1px solid var(--border-color);
+  max-width: 100%; height: auto;
+}
+
+/* 删除按钮样式 */
+.btn-file-action.btn-delete {
+  color: #dc2626; border-color: #fecaca;
+  background: rgba(220, 38, 38, 0.08);
+}
+.btn-file-action.btn-delete:hover:not(:disabled) {
+  background: #dc2626; color: #fff; border-color: #dc2626;
+}
+.btn-file-action.btn-delete:disabled {
+  opacity: 0.4; cursor: not-allowed;
 }
 
 /* ==================== 模板下拉（增强版） ==================== */

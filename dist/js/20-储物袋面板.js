@@ -211,11 +211,97 @@ function deselectAllFiles() {
   updateDownloadButton();
 }
 
+/* ---------- 删除选中文件 ---------- */
+function deleteSelectedFiles() {
+  const selectedFiles = collectedFiles.filter(f => f._selected);
+  if (selectedFiles.length === 0) {
+    showBottomToast('请先勾选要删除的文件');
+    return;
+  }
+  if (!confirm(`确定要删除选中的 ${selectedFiles.length} 个文件吗？\n此操作不可撤销。`)) {
+    return;
+  }
+  // 从 collectedFiles 中移除选中的文件
+  collectedFiles = collectedFiles.filter(f => !f._selected);
+  renderFileList();
+  updateDownloadButton();
+  updateFileCount();
+  showBottomToast(`已删除 ${selectedFiles.length} 个文件`);
+}
+
+/* ---------- 更新删除按钮状态 ---------- */
+function updateDeleteButton() {
+  const btn = document.getElementById('btnDeleteSelected');
+  if (btn) {
+    const selectedCount = collectedFiles.filter(f => f._selected).length;
+    btn.disabled = selectedCount === 0;
+  }
+}
+
+/* ---------- 模板下拉框处理函数 ---------- */
+function toggleTemplateDropdown(event) {
+  event.stopPropagation();
+  const dropdown = document.getElementById('templateDropdown');
+  if (dropdown) {
+    dropdown.classList.toggle('show');
+  }
+}
+
+function handleTemplateAction(fnName) {
+  // 关闭下拉框
+  const dropdown = document.getElementById('templateDropdown');
+  if (dropdown) dropdown.classList.remove('show');
+  
+  // 执行对应函数
+  if (typeof window[fnName] === 'function') {
+    window[fnName]();
+  } else if (typeof loadGroupThenRun === 'function') {
+    loadGroupThenRun('compare', fnName);
+  } else {
+    showBottomToast('功能加载中，请稍后重试');
+  }
+}
+
+/* ---------- 快速对比处理函数 ---------- */
+function handleQuickCompare() {
+  if (typeof openQuickCompare === 'function') {
+    openQuickCompare();
+  } else if (typeof loadGroupThenRun === 'function') {
+    loadGroupThenRun('compare', 'openQuickCompare');
+  } else {
+    showBottomToast('功能加载中，请稍后重试');
+  }
+}
+
+/* ---------- 数据对比处理函数 ---------- */
+function handleOpenCompareModal() {
+  if (typeof openCompareModal === 'function') {
+    openCompareModal();
+  } else if (typeof loadGroupThenRun === 'function') {
+    loadGroupThenRun('compare', 'openCompareModal');
+  } else {
+    showBottomToast('功能加载中，请稍后重试');
+  }
+}
+
+// 点击页面其他地方关闭下拉框
+document.addEventListener('click', function(e) {
+  const wrap = e.target.closest('.template-dropdown-wrap');
+  if (!wrap) {
+    const dropdown = document.getElementById('templateDropdown');
+    if (dropdown && dropdown.classList.contains('show')) {
+      dropdown.classList.remove('show');
+    }
+  }
+});
+
 function updateDownloadButton() {
   const selectedCount = collectedFiles.filter(f => f._selected).length;
   const btn = document.getElementById('btnDownloadZip');
   btn.disabled = selectedCount === 0;
-  btn.innerHTML = selectedCount > 0 ? `<span data-i18n="btn-download-zip">📦 ${t('btn-download-zip').replace(' (ZIP)','')} (${selectedCount})</span>` : `<span data-i18n="btn-download-zip">${t('btn-download-zip')}</span>`;
+  btn.innerHTML = selectedCount > 0 ? `<span>打包下载 (${selectedCount})</span>` : `<span>打包下载 (ZIP)</span>`;
+  // 同时更新删除按钮状态
+  updateDeleteButton();
 }
 
 /**
