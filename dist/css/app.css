@@ -3103,6 +3103,8 @@ body::after {
   border-radius: var(--radius); margin-top: 10px;
   border: 1px solid var(--border-color);
   box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  max-height: 400px;
+  overflow-y: auto;
 }
 .usage-guide-content.open { display: block; }
 .guide-steps { display: flex; flex-direction: column; gap: 16px; }
