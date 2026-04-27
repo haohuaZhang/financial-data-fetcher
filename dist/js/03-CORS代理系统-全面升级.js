@@ -1,25 +1,24 @@
 // ==================== CORS代理系统（全面升级） ====================
 
 // 文本内容代理（用于HTML页面获取）
+// 按 2026-04-27 实测结果排序：可用性 + 速度 + 稳定性
 const textProxies = [
-  // ⭐ 经过实测可用（2026-04-10）
-  url => `https://proxy.killcors.com/?url=${encodeURIComponent(url)}`,
-  // 备用代理（可能不稳定）
-  url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-  url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  // ⭐⭐⭐ CodeTabs - 唯一完全可用，支持GET，速度稳定(~2s)
   url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  url => `https://cors.x2u.in/${url.replace(/^https?:\/\//, '')}`,
+  // ⭐⭐ cors.lol - 可用但有限流(429)，适合作为备用
+  url => `https://api.cors.lol/?url=${encodeURIComponent(url)}`,
+  // ⭐ AllOrigins(JSON) - 超时严重(~7-15s)，仅作为最后兜底
+  url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
 ];
 
 // 二进制内容代理（用于玉简获取）
 const binaryProxies = [
-  // ⭐ 经过实测可用（2026-04-10）
-  url => `https://proxy.killcors.com/?url=${encodeURIComponent(url)}`,
-  // 备用代理
-  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  // ⭐⭐⭐ CodeTabs - 唯一完全可用，支持大文件(625KB)
   url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  // ⭐⭐ cors.lol - 可用但有限流
+  url => `https://api.cors.lol/?url=${encodeURIComponent(url)}`,
+  // ⭐ AllOrigins(Raw) - 超时严重，仅兜底
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
 ];
 
 // 代理健康状态追踪
@@ -35,14 +34,10 @@ function getProxyName(proxyFn) {
     const u = new URL(url);
     const host = u.hostname.replace('www.', '');
     let proxyKey = '';
-    if (host.includes('killcors')) proxyKey = 'killcors';
+    if (host.includes('codetabs')) proxyKey = 'codetabs';
+    else if (host.includes('cors.lol')) proxyKey = 'cors-lol';
     else if (host.includes('allorigins') && url.includes('/get?')) proxyKey = 'allorigins-json';
     else if (host.includes('allorigins') && url.includes('/raw?')) proxyKey = 'allorigins-raw';
-    else if (host.includes('corsproxy.io')) proxyKey = 'corsproxy-io';
-    else if (host.includes('codetabs')) proxyKey = 'codetabs';
-    else if (host.includes('cors.sh')) proxyKey = 'cors-sh';
-    else if (host.includes('cors-anywhere')) proxyKey = 'cors-anywhere';
-    else if (host.includes('x2u')) proxyKey = 'x2u';
     if (proxyKey) return getThemeProxyName(proxyKey);
     return host;
   } catch (e) {
@@ -116,7 +111,7 @@ function markProxyFailed(proxyFn, reason) {
 }
 
 /**
- * 获取可用代理列表（排除调息中的）
+ * 获取可用代理列表（排除冷却中的）
  */
 function getAvailableProxies(type) {
   const now = Date.now();
@@ -191,4 +186,3 @@ function renderProxyStatus() {
 
   container.innerHTML = html;
 }
-
