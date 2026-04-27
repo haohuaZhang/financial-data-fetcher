@@ -56,14 +56,14 @@ async function renderPdfCanvasPreview({ body, fileName, sourceText, downloadUrl,
   if (wrap) {
     const firstBlock = document.createElement('div');
     firstBlock.className = 'pdf-preview-page';
-    firstBlock.innerHTML = `<div class="pdf-preview-page-label">第 1 页</div>`;
+    firstBlock.innerHTML = `<div class="pdf-preview-page-label">${t('pdf-page-num', '第 1 页')}</div>`;
     firstBlock.appendChild(firstPageInfo.canvas);
     wrap.appendChild(firstBlock);
 
     if (pageCount > 1) {
       const loadingBlock = document.createElement('div');
       loadingBlock.className = 'pdf-preview-page';
-      loadingBlock.innerHTML = `<div class="pdf-preview-page-label">其余 ${pageCount - 1} 页后台加载中</div>`;
+      loadingBlock.innerHTML = `<div class="pdf-preview-page-label">${t('pdf-pages-loading', '其余 ' + (pageCount - 1) + ' 页后台加载中')}</div>`;
       wrap.appendChild(loadingBlock);
 
       Promise.resolve().then(async () => {
@@ -75,13 +75,13 @@ async function renderPdfCanvasPreview({ body, fileName, sourceText, downloadUrl,
             const item = await renderPage(pageNum);
             const pageBlock = document.createElement('div');
             pageBlock.className = 'pdf-preview-page';
-            pageBlock.innerHTML = `<div class="pdf-preview-page-label">第 ${item.pageNum} 页</div>`;
+            pageBlock.innerHTML = `<div class="pdf-preview-page-label">${t('pdf-page-num', '第 ' + item.pageNum + ' 页')}</div>`;
             pageBlock.appendChild(item.canvas);
             wrap.appendChild(pageBlock);
           } catch (e) {
             const errorBlock = document.createElement('div');
             errorBlock.className = 'pdf-preview-page';
-            errorBlock.innerHTML = `<div class="pdf-preview-page-label">第 ${pageNum} 页加载失败</div>`;
+            errorBlock.innerHTML = `<div class="pdf-preview-page-label">${t('pdf-page-fail', '第 ' + pageNum + ' 页加载失败')}</div>`;
             wrap.appendChild(errorBlock);
             break;
           }
@@ -138,6 +138,7 @@ async function previewFile(fileId) {
       body.innerHTML = `<div style="padding:40px;text-align:center;color:var(--error);">${t('file-preview-fail')}: ${escapeHtml(e.message)}</div>`;
     }
   } else if (file.type === 'pdf') {
+    if (currentPdfBlobUrl) { URL.revokeObjectURL(currentPdfBlobUrl); currentPdfBlobUrl = null; }
     const blobUrl = URL.createObjectURL(file.blob);
     currentPdfBlobUrl = blobUrl;
     currentPreviewState = { fileId, type: 'pdf' };
@@ -196,6 +197,7 @@ async function previewFile(fileId) {
       try {
         const blob = await fetchBinaryViaProxy(file.url);
         if (!await isValidPdfBlob(blob)) throw new Error('不是有效PDF');
+        if (currentPdfBlobUrl) { URL.revokeObjectURL(currentPdfBlobUrl); currentPdfBlobUrl = null; }
         const blobUrl = URL.createObjectURL(blob);
         currentPdfBlobUrl = blobUrl;
         await renderPdfCanvasPreview({

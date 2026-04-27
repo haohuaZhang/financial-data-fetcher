@@ -129,6 +129,9 @@ function checkSecretExpiry() {
     }
     document.getElementById('secretModal').classList.remove('hidden');
     renderAccessBanner();
+    // 移除积分提示
+    var hint1 = document.getElementById('checkinBannerHint');
+    if (hint1) hint1.remove();
     document.getElementById('secretInput').focus();
     return true;
   }
@@ -184,6 +187,11 @@ function verifySecret() {
     document.getElementById('secretModal').classList.add('hidden');
     showBottomToast(t('secret-toast-welcome'));
     renderAccessBanner();
+    // 更新积分提示 + 显示积分徽章
+    if (typeof appendCheckinHintToBanner === 'function') appendCheckinHintToBanner();
+    if (typeof updateHeaderPoints === 'function') updateHeaderPoints();
+    // 延迟弹出签到面板
+    if (typeof scheduleAutoCheckin === 'function') scheduleAutoCheckin();
     return;
   }
 
@@ -195,9 +203,16 @@ function verifySecret() {
     sessionStorage.setItem('secretVerified', 'true');
     sessionStorage.setItem(SECRET_MODE_KEY, 'permanent');
     sessionStorage.setItem('secretVerifiedTime', Date.now().toString());
+    // 正式暗号验证成功，清除体验过期标记
+    localStorage.removeItem(EXPERIENCE_EXPIRED_KEY);
     document.getElementById('secretModal').classList.add('hidden');
     showBottomToast(t('secret-toast-welcome'));
     renderAccessBanner();
+    // 移除积分提示（永久模式不需要延用提示）
+    var hint2 = document.getElementById('checkinBannerHint');
+    if (hint2) hint2.remove();
+    // 显示积分徽章
+    if (typeof updateHeaderPoints === 'function') updateHeaderPoints();
   } else {
     // 暗号错误
     errorEl.textContent = t('secret-error-wrong');
@@ -212,6 +227,8 @@ function skipSecret() {
   document.getElementById('secretModal').classList.add('hidden');
   // 显示散修提示条
   renderAccessBanner();
+  // 隐藏积分徽章（游客模式）
+  if (typeof updateHeaderPoints === 'function') updateHeaderPoints();
   // 显示底部Toast
   showBottomToast(t('guest-toast'));
   // 限制功法等级只能选一个

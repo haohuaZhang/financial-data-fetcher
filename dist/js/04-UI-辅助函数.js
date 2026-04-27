@@ -109,6 +109,7 @@ function getTimestamp() {
 
 function addLog(msg, level = 'info') {
   const logContent = document.getElementById('logContent');
+  if (!logContent) return;
   if (!Array.isArray(window.__logHistory)) window.__logHistory = [];
   const entryState = resolveLogEntry(msg);
   const logEntry = {
@@ -120,6 +121,7 @@ function addLog(msg, level = 'info') {
     raw: String(msg),
   };
   window.__logHistory.push(logEntry);
+  if (window.__logHistory.length > 500) window.__logHistory = window.__logHistory.slice(-500);
   const node = document.createElement('div');
   node.className = `log-entry ${level}`;
   node.innerHTML = `<span class="log-time">[${logEntry.time}]</span><span class="log-msg">${escapeHtml(logEntry.key ? `${t(logEntry.key)}${logEntry.suffix || ''}` : rethemeText(logEntry.raw, logEntry.themeId))}</span>`;

@@ -178,7 +178,7 @@ function renderProxyStatus() {
       statusText = t('proxy-good-state');
     }
 
-    const displayName = getProxyName(fn);
+    const displayName = escapeHtml(getProxyName(fn));
     html += `
       <div class="proxy-status-item">
         <span class="proxy-order">${idx + 1}</span>

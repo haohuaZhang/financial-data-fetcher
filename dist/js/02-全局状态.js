@@ -11,6 +11,15 @@ let collectedFiles = [];
 
 // 请求缓存（用于请求去重）
 const requestCache = new Map();
+const REQUEST_CACHE_MAX = 100;
+function requestCacheSet(url, text) {
+  if (requestCache.size >= REQUEST_CACHE_MAX) {
+    const firstKey = requestCache.keys().next().value;
+    requestCache.delete(firstKey);
+  }
+  requestCache.set(url, text);
+}
+function clearRequestCache() { requestCache.clear(); }
 
 // PDF blobUrl 追踪（用于内存释放）
 let currentPdfBlobUrl = null;

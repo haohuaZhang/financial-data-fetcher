@@ -28,6 +28,7 @@
       '25-进度摘要.js',
       '31-财务洞察.js',
       '30-section-30.js',
+      '32-签到系统.js',
     ],
     fetch: [
       '11-CORS代理请求-文本内容-智能轮换.js',
@@ -187,7 +188,7 @@
     var el = document.getElementById('promoRotate');
     if (el) {
       var idx = 0;
-      setInterval(function(){
+      var promoTimer = setInterval(function(){
         el.style.opacity = '0';
         el.style.transform = 'translateY(8px)';
         setTimeout(function(){
@@ -197,6 +198,30 @@
           el.style.transform = 'translateY(0)';
         }, 400);
       }, 3000);
+      var closeBtn = document.querySelector('#topAdBanner .promo-banner__close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function() { clearInterval(promoTimer); });
+      }
     }
   }
+})();
+
+function closePromoBanner(id) {
+  var el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+  try { localStorage.setItem('promo_closed_' + id, Date.now().toString()); } catch(e) {}
+}
+(function() {
+  var ids = ['topAdBanner'];
+  var now = Date.now();
+  var DAY = 86400000;
+  ids.forEach(function(id) {
+    try {
+      var closed = parseInt(localStorage.getItem('promo_closed_' + id) || '0');
+      if (closed && (now - closed) < DAY) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      }
+    } catch(e) {}
+  });
 })();

@@ -165,7 +165,7 @@ async function fetchViaProxy(url, retries = 3) {
         addLog(`[debug] ${t('log-debug-content')}: ${preview}`, 'debug');
 
         // 请求去重：缓存成功结果
-        requestCache.set(url, text);
+        requestCacheSet(url, text);
 
         return text;
       } catch (e) {

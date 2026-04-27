@@ -289,6 +289,7 @@ async function startFetching() {
   }
 
   isRunning = false;
+  if (typeof clearRequestCache === 'function') clearRequestCache();
   // BUG-D03: 恢复开始按钮状态
   btnStart.disabled = false;
   btnStart.innerHTML = '<span>&#9654;</span> ' + t('btn-start');

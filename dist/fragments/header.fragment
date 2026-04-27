@@ -6,6 +6,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
     <div class="header-badge" data-i18n="nav-badge">v3.1 | 纯浏览器运行</div>
+    <span id="headerPointsWrap" class="header-points-wrap" style="margin-left:8px"><span id="headerPoints" style="background:linear-gradient(135deg,#FFD700,#FFA500);color:#fff;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600;cursor:pointer" onclick="openCheckinModal()" title="签到领积分">🪙0</span></span>
     <div class="theme-switcher">
       <select id="themeSelector" onchange="applyTheme(this.value)">
         <option value="normal">📊 普通模式</option>
@@ -20,7 +21,7 @@
 
 <!-- ==================== 顶部动态广告横幅（样式G：流动渐变 + 动态轮播） ==================== -->
 <div class="promo-banner" id="topAdBanner">
-  <button class="promo-banner__close" onclick="document.getElementById('topAdBanner').style.display='none'" aria-label="关闭">&times;</button>
+  <button class="promo-banner__close" onclick="closePromoBanner('topAdBanner')" aria-label="关闭">&times;</button>
   <div class="promo-banner__inner">
     <span class="promo-banner__icon">💼</span>
     <span class="promo-banner__text">
