@@ -1,5 +1,35 @@
 // ==================== Excel模板生成 ====================
 
+/* ---------- 数据格式转换 ---------- */
+function convertExcelDataToArray() {
+  var raw = window.__latestExcelData;
+  if (!raw) return [];
+  // 如果已经是数组格式，直接返回
+  if (Array.isArray(raw)) return raw.filter(function(f) { return f.type === 'excel'; });
+  // 对象格式转换
+  var result = [];
+  for (var sheetKey in raw) {
+    if (!raw.hasOwnProperty(sheetKey)) continue;
+    var sheetData = raw[sheetKey];
+    if (!sheetData || typeof sheetData !== 'object') continue;
+    // sheetKey 格式: "公司名_报告类型"
+    var name = sheetKey;
+    // 合并该sheet下所有表格的行
+    var allRows = [];
+    for (var tableName in sheetData) {
+      if (!sheetData.hasOwnProperty(tableName)) continue;
+      var tableRows = sheetData[tableName];
+      if (Array.isArray(tableRows)) {
+        allRows = allRows.concat(tableRows);
+      }
+    }
+    if (allRows.length > 0) {
+      result.push({ type: 'excel', name: name, rows: allRows });
+    }
+  }
+  return result;
+}
+
 /* ---------- 指标映射 ---------- */
 var TEMPLATE_METRICS = {
   revenue:    { label: '营业收入',     keywords: ['营业收入', '营业总收入', '主营业务收入'] },
@@ -57,7 +87,7 @@ function extractAllCompanyData(rows) {
 /* ---------- 杜邦分析模板 ---------- */
 function generateDupontTemplate() {
   if (!requirePremium()) return;
-  var files = (window.__latestExcelData || []).filter(function(f) { return f.type === 'excel'; });
+  var files = convertExcelDataToArray();
   if (files.length === 0) { showBottomToast('请先采集Excel文件'); return; }
 
   var wb = XLSX.utils.book_new();
@@ -85,7 +115,7 @@ function generateDupontTemplate() {
 /* ---------- 同行对比模板 ---------- */
 function generatePeerCompareTemplate() {
   if (!requirePremium()) return;
-  var files = (window.__latestExcelData || []).filter(function(f) { return f.type === 'excel'; });
+  var files = convertExcelDataToArray();
   if (files.length < 2) { showBottomToast('至少需要2个Excel文件进行同行对比'); return; }
 
   var wb = XLSX.utils.book_new();
@@ -109,7 +139,7 @@ function generatePeerCompareTemplate() {
 /* ---------- 多年趋势模板 ---------- */
 function generateTrendTemplate() {
   if (!requirePremium()) return;
-  var files = (window.__latestExcelData || []).filter(function(f) { return f.type === 'excel'; });
+  var files = convertExcelDataToArray();
   if (files.length === 0) { showBottomToast('请先采集Excel文件'); return; }
 
   var wb = XLSX.utils.book_new();

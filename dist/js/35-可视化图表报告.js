@@ -74,7 +74,7 @@ function switchToChartTab() {
 /* ---------- 渲染所有图表 ---------- */
 function renderAllCharts() {
   if (!window.echarts) return;
-  var files = (window.__latestExcelData || []).filter(function(f) { return f.type === 'excel'; });
+  var files = convertExcelDataToArray();
   if (files.length === 0) {
     var containers = document.querySelectorAll('.chart-container');
     containers.forEach(function(c) { c.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:0.85rem;">暂无数据</div>'; });

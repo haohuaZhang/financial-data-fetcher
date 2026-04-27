@@ -3077,39 +3077,81 @@ body::after {
 }
 .chart-container { width: 100%; }
 
-/* ==================== 使用指南 ==================== */
+/* ==================== 使用指南（增强版） ==================== */
 .usage-guide-wrap { margin-top: 8px; }
 .usage-guide-toggle {
-  font-size: 0.78rem; color: var(--text-muted); cursor: pointer;
-  padding: 6px 0; user-select: none; transition: color 0.2s;
-}
-.usage-guide-toggle:hover { color: var(--accent); }
-.usage-guide-content {
-  display: none; padding: 10px 14px; font-size: 0.78rem;
-  color: var(--text-secondary); line-height: 1.6;
+  font-size: 0.82rem; color: var(--accent); cursor: pointer;
+  padding: 8px 12px; user-select: none; transition: all 0.2s;
   background: var(--bg-secondary); border-radius: var(--radius);
-  margin-bottom: 8px;
+  border: 1px dashed var(--border-color); font-weight: 500;
+  display: flex; align-items: center; gap: 6px;
+}
+.usage-guide-toggle:hover {
+  background: var(--accent-dim); border-color: var(--accent);
+}
+.usage-guide-arrow {
+  font-size: 0.7rem; transition: transform 0.3s;
+  display: inline-block;
+}
+.usage-guide-content {
+  display: none; padding: 16px; font-size: 0.8rem;
+  color: var(--text-secondary); line-height: 1.7;
+  background: var(--bg-card); border-radius: var(--radius);
+  margin-top: 8px; border: 1px solid var(--border-color);
 }
 .usage-guide-content.open { display: block; }
-.usage-guide-content p { margin-bottom: 4px; }
+.guide-steps { display: flex; flex-direction: column; gap: 14px; }
+.guide-step { display: flex; gap: 12px; }
+.guide-step-num {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); color: #fff; font-size: 0.75rem;
+  font-weight: 700; display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.guide-step-body { flex: 1; min-width: 0; }
+.guide-step-title {
+  font-size: 0.85rem; font-weight: 600; color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.guide-step-desc { color: var(--text-secondary); }
+.guide-step-desc p { margin-bottom: 4px; }
+.guide-step-desc ul {
+  margin: 4px 0 8px 16px; padding: 0;
+  list-style: disc;
+}
+.guide-step-desc li { margin-bottom: 2px; }
+.guide-step-icon { font-size: 1.1rem; margin-bottom: 4px; }
+.guide-tip {
+  font-size: 0.75rem; color: var(--accent);
+  background: var(--accent-dim); padding: 4px 8px;
+  border-radius: 4px; margin-top: 4px; display: inline-block;
+}
 
-/* ==================== 模板下拉 ==================== */
+/* ==================== 模板下拉（增强版） ==================== */
 .template-dropdown-wrap { position: relative; }
 .template-dropdown {
-  display: none; position: absolute; top: 100%; right: 0;
-  background: #fff; border: 1px solid var(--border-color);
-  border-radius: var(--radius); box-shadow: var(--shadow-lg);
-  z-index: 100; min-width: 160px; overflow: hidden;
-  margin-top: 4px;
+  display: none; position: absolute; top: calc(100% + 6px); right: 0;
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 200; min-width: 200px; overflow: hidden;
+  animation: dropdownFadeIn 0.15s ease;
+}
+@keyframes dropdownFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .template-dropdown.show { display: block; }
 .template-dropdown-item {
-  padding: 10px 16px; font-size: 0.8rem; color: var(--text-primary);
-  cursor: pointer; transition: background 0.15s; white-space: nowrap;
+  padding: 10px 14px; font-size: 0.82rem; color: var(--text-primary);
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--border-color);
 }
+.template-dropdown-item:last-child { border-bottom: none; }
 .template-dropdown-item:hover {
   background: var(--accent-dim); color: var(--accent);
 }
+.template-dropdown-icon { font-size: 1rem; }
 
 /* ==================== 对比表格增强 ==================== */
 .compare-table th.sortable {

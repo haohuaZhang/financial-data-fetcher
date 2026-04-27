@@ -135,6 +135,14 @@
 
   window.__loadFeatureGroup = ensureGroup;
 
+  window.loadGroupThenRun = function(groupName, fnName) {
+    if (typeof window[fnName] === 'function') { window[fnName](); return; }
+    ensureGroup(groupName).then(function() {
+      if (typeof window[fnName] === 'function') window[fnName]();
+      else showBottomToast('功能加载失败，请刷新重试');
+    });
+  };
+
   async function mountFragments() {
     const parts = await Promise.all(fragmentPaths.map(loadFragment));
     document.body.innerHTML = parts.join('\n');

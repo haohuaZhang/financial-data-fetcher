@@ -63,15 +63,21 @@
           <div class="file-toolbar-left">
             <button class="btn-file-action" onclick="selectAllFiles()" data-i18n="btn-select-all">全选</button>
             <button class="btn-file-action" onclick="deselectAllFiles()" data-i18n="btn-deselect-all">取消全选</button>
-            <button class="btn-file-action" onclick="openQuickCompare()" data-i18n="btn-quick-compare">⚡快速对比</button>
+            <button class="btn-file-action" onclick="typeof openQuickCompare==='function'?openQuickCompare():loadGroupThenRun('compare','openQuickCompare');">⚡快速对比</button>
           </div>
           <div class="file-toolbar-right">
             <div class="template-dropdown-wrap">
-              <button class="btn-file-action" onclick="this.nextElementSibling.classList.toggle('show')" data-i18n="btn-template-export">📋模板导出</button>
+              <button class="btn-file-action" onclick="this.nextElementSibling.classList.toggle('show')">📋模板导出</button>
               <div class="template-dropdown">
-                <div class="template-dropdown-item" onclick="generateDupontTemplate();this.closest('.template-dropdown').classList.remove('show');">杜邦分析模板</div>
-                <div class="template-dropdown-item" onclick="generatePeerCompareTemplate();this.closest('.template-dropdown').classList.remove('show');">同行对比模板</div>
-                <div class="template-dropdown-item" onclick="generateTrendTemplate();this.closest('.template-dropdown').classList.remove('show');">多年趋势模板</div>
+                <div class="template-dropdown-item" onclick="typeof generateDupontTemplate==='function'?generateDupontTemplate():loadGroupThenRun('compare','generateDupontTemplate');this.closest('.template-dropdown').classList.remove('show');">
+                  <span class="template-dropdown-icon">📊</span> 杜邦分析模板
+                </div>
+                <div class="template-dropdown-item" onclick="typeof generatePeerCompareTemplate==='function'?generatePeerCompareTemplate():loadGroupThenRun('compare','generatePeerCompareTemplate');this.closest('.template-dropdown').classList.remove('show');">
+                  <span class="template-dropdown-icon">📋</span> 同行对比模板
+                </div>
+                <div class="template-dropdown-item" onclick="typeof generateTrendTemplate==='function'?generateTrendTemplate():loadGroupThenRun('compare','generateTrendTemplate');this.closest('.template-dropdown').classList.remove('show');">
+                  <span class="template-dropdown-icon">📈</span> 多年趋势模板
+                </div>
               </div>
             </div>
             <button class="btn-file-action" onclick="openCompareModal()" data-i18n="btn-data-compare">📊 数据对比</button>
@@ -81,11 +87,58 @@
           </div>
         </div>
         <div class="usage-guide-wrap">
-          <div class="usage-guide-toggle" onclick="toggleUsageGuide('fileUsageGuide')">⎘ 使用指南</div>
+          <div class="usage-guide-toggle" onclick="toggleUsageGuide('fileUsageGuide')">📖 使用指南 <span class="usage-guide-arrow">▼</span></div>
           <div class="usage-guide-content" id="fileUsageGuide">
-            <p><strong>快速对比</strong>：直接对比已采集的所有Excel文件关键指标，支持排序和导出。</p>
-            <p><strong>模板导出</strong>：一键生成杜邦分析、同行对比、多年趋势等专业Excel模板。</p>
-            <p><strong>数据对比</strong>：选择2个以上文件进行逐项财务指标对比分析。</p>
+            <div class="guide-steps">
+              <div class="guide-step">
+                <div class="guide-step-num">1</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">快速对比</div>
+                  <div class="guide-step-desc">
+                    <div class="guide-step-icon">⚡</div>
+                    <p>采集完成后，点击 <strong>「⚡快速对比」</strong> 按钮，系统会自动提取所有Excel文件的关键财务指标（营业收入、净利润、总资产等），生成对比表格。</p>
+                    <p class="guide-tip">💡 支持点击表头排序，还能一键导出为Excel文件。</p>
+                  </div>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-num">2</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">模板导出</div>
+                  <div class="guide-step-desc">
+                    <div class="guide-step-icon">📋</div>
+                    <p>点击 <strong>「📋模板导出」</strong> 下拉菜单，选择专业分析模板：</p>
+                    <ul>
+                      <li><strong>杜邦分析</strong> — 拆解ROE的三大驱动因素（净利率×周转率×权益乘数）</li>
+                      <li><strong>同行对比</strong> — 多家公司核心指标横向对比</li>
+                      <li><strong>多年趋势</strong> — 关键指标年度变化 + 增长率计算</li>
+                    </ul>
+                    <p class="guide-tip">💡 适合用于投资分析报告、竞品研究等场景。</p>
+                  </div>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-num">3</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">数据对比</div>
+                  <div class="guide-step-desc">
+                    <div class="guide-step-icon">📊</div>
+                    <p>勾选2个以上文件，点击 <strong>「📊数据对比」</strong>，可逐项对比两家公司的财务数据，高亮差异项。</p>
+                    <p class="guide-tip">💡 适合深入分析两家公司的财务差异。</p>
+                  </div>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-num">4</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">文件管理</div>
+                  <div class="guide-step-desc">
+                    <div class="guide-step-icon">📂</div>
+                    <p>支持搜索过滤、全选/取消、预览Excel内容、打包ZIP下载。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="file-list-container" id="fileListContainer">
@@ -115,6 +168,65 @@
           <button class="finance-sub-tab" data-sub="chart" onclick="switchToChartTab()">&#128200; 图表<span class="pro-lock-badge">&#128081;</span></button>
         </div>
         <div class="finance-sub-panel active" data-sub="insight">
+        <div class="usage-guide-wrap" style="margin:0 0 12px 0;">
+          <div class="usage-guide-toggle" onclick="toggleUsageGuide('insightUsageGuide')">📖 财务洞察使用指南 <span class="usage-guide-arrow">▼</span></div>
+          <div class="usage-guide-content" id="insightUsageGuide">
+            <div class="guide-steps">
+              <div class="guide-step">
+                <div class="guide-step-num">1</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">什么是财务洞察？</div>
+                  <div class="guide-step-desc">
+                    <div class="guide-step-icon">🔍</div>
+                    <p>财务洞察会 <strong>自动分析</strong> 你采集的Excel数据，提取关键财务指标，生成汇总卡片、指标矩阵和异常提醒。</p>
+                    <p class="guide-tip">💡 无需手动操作，采集完成后自动刷新。</p>
+                  </div>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-num">2</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">洞察面板能看什么？</div>
+                  <div class="guide-step-desc">
+                    <div class="guide-step-icon">📋</div>
+                    <ul>
+                      <li><strong>汇总卡片</strong> — 文件总数、Excel/PDF数量、异常提醒数、公司数、年份数</li>
+                      <li><strong>核心指标</strong> — 营业收入、净利润、总资产、负债合计</li>
+                      <li><strong>指标矩阵</strong> — 各指标的当前值、上期值、变动额、涨跌幅</li>
+                      <li><strong>异常提醒</strong> — 自动检测营收/利润大幅波动等异常情况</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-num">3</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">图表分析</div>
+                  <div class="guide-step-desc">
+                    <div class="guide-step-icon">📊</div>
+                    <p>切换到 <strong>「📈 图表」</strong> 子标签，可查看可视化图表：</p>
+                    <ul>
+                      <li><strong>折线图</strong> — 多年趋势（营收、利润、现金流）</li>
+                      <li><strong>柱状图</strong> — 同行对比（横向比较多家公司）</li>
+                      <li><strong>雷达图</strong> — 综合评估（五维财务健康度）</li>
+                    </ul>
+                    <p class="guide-tip">💡 图表支持导出为高清PNG图片，可直接用于报告。</p>
+                  </div>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-num">4</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">导出摘要</div>
+                  <div class="guide-step-desc">
+                    <div class="guide-step-icon">📥</div>
+                    <p>点击右上角 <strong>「导出摘要」</strong> 按钮，可将所有洞察数据导出为Excel文件，方便离线分析。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="finance-insight-grid">
           <div class="finance-card"><span data-i18n="finance-file-count">文件总数</span><strong id="fiFileCount">0</strong></div>
           <div class="finance-card"><span data-i18n="finance-excel-count">Excel</span><strong id="fiExcelCount">0</strong></div>
@@ -175,12 +287,52 @@
               <div class="chart-container" id="chartRadar" style="height:320px;"></div>
             </div>
             <div class="usage-guide-wrap">
-              <div class="usage-guide-toggle" onclick="toggleUsageGuide('chartUsageGuide')">&#9432; 图表使用指南</div>
+              <div class="usage-guide-toggle" onclick="toggleUsageGuide('chartUsageGuide')">📖 图表使用指南 <span class="usage-guide-arrow">▼</span></div>
               <div class="usage-guide-content" id="chartUsageGuide">
-                <p><strong>折线图</strong>：展示营业收入、净利润、经营现金流多年变化趋势。</p>
-                <p><strong>柱状图</strong>：直观对比不同公司的核心财务指标。</p>
-                <p><strong>雷达图</strong>：多维度综合评估公司财务健康状况。</p>
-                <p>点击「导出PNG」可将图表保存为高清图片。</p>
+                <div class="guide-steps">
+                  <div class="guide-step">
+                    <div class="guide-step-num">1</div>
+                    <div class="guide-step-body">
+                      <div class="guide-step-title">前提条件</div>
+                      <div class="guide-step-desc">
+                        <div class="guide-step-icon">📌</div>
+                        <p>请先在左侧面板输入公司名称，选择报告类型（年报/中报等），点击 <strong>「开始采集」</strong> 完成数据采集。</p>
+                        <p class="guide-tip">💡 至少需要采集1家公司的数据才能生成图表。</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="guide-step">
+                    <div class="guide-step-num">2</div>
+                    <div class="guide-step-body">
+                      <div class="guide-step-title">折线图 — 多年趋势</div>
+                      <div class="guide-step-desc">
+                        <div class="guide-step-icon">📈</div>
+                        <p>展示各公司的 <strong>营业收入、净利润、经营现金流</strong> 变化趋势。适合观察公司成长性。</p>
+                        <p class="guide-tip">💡 鼠标悬停可查看具体数值，点击「导出PNG」保存高清图片。</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="guide-step">
+                    <div class="guide-step-num">3</div>
+                    <div class="guide-step-body">
+                      <div class="guide-step-title">柱状图 — 同行对比</div>
+                      <div class="guide-step-desc">
+                        <div class="guide-step-icon">📊</div>
+                        <p>横向对比不同公司的 <strong>营业收入、净利润、总资产</strong>。适合筛选投资标的。</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="guide-step">
+                    <div class="guide-step-num">4</div>
+                    <div class="guide-step-body">
+                      <div class="guide-step-title">雷达图 — 综合评估</div>
+                      <div class="guide-step-desc">
+                        <div class="guide-step-icon">🎯</div>
+                        <p>从5个维度（收入、利润、资产、权益、现金流）综合评估公司财务健康度。面积越大越优秀。</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
