@@ -190,8 +190,8 @@
       <div class="section-body collapsed">
         <div class="form-group">
           <label class="form-label" data-i18n="label-proxy">自定义代理地址（每行一个）</label>
-          <textarea id="customProxies" placeholder="https://proxy.killcors.com/?url=&#10;https://corsproxy.io/?url="></textarea>
-          <div class="form-hint" data-i18n="hint-proxy">格式：代理地址前缀，目标URL会自动拼接在后面。已实测可用：proxy.killcors.com</div>
+          <textarea id="customProxies" placeholder="https://api.codetabs.com/v1/proxy?quest="></textarea>
+          <div class="form-hint" data-i18n="hint-proxy">格式：代理地址前缀，目标URL会自动拼接在后面。已实测可用：api.codetabs.com</div>
         </div>
         <div class="switch-row">
           <span class="switch-label" data-i18n="switch-custom-proxy">使用自定义代理</span>

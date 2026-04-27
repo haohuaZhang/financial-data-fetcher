@@ -46,7 +46,7 @@ const THEMES = {
       'secret-expired': '已超过1小时未操作，请重新输入暗号',
       'secret-experience-expired': '该体验版暗号已过期，请前往公众号“蒙西求职记”获取正式版暗号',
       'secret-toast-welcome': '🎉 欢迎回来！',
-      'guest-banner': '⚠️ 当前为访客模式，公司列表仅处理第一个公司，年份也只处理第一个年份，报告类型只能选择一个',
+      'guest-banner': '⚠️ 访客模式：功能受限',
       'experience-banner': '⚠️ 当前为体验模式，全部功能可用，剩余',
       'guest-toast': '当前为访客模式，仅可体验基本功能',
       'log-config-restored': '✨ 已恢复上次配置',
@@ -256,7 +256,7 @@ const THEMES = {
       'secret-expired': '已超过一个时辰未修炼，请重新输入宗门暗号',
       'secret-experience-expired': '这段试炼仙缘已到时限，请往宗门“蒙西求职记”求取正式版暗号',
       'secret-toast-welcome': '🎉 欢迎归来，同门弟子！',
-      'guest-banner': '⚠️ 当前用户为散修，宗门列表中的宗门名称每次只处理第一个宗门，年份也只处理第一个年份，功法等级只能选择一个',
+      'guest-banner': '⚠️ 散修模式：功能受限',
       'experience-banner': '⚠️ 当前为体验模式，已开启试炼仙缘，全部功能可用，剩余',
       'guest-toast': '当前状态为散修，仅体验基本功能',
       'log-config-restored': '✨ 已恢复上次修炼配置',
@@ -465,7 +465,7 @@ const THEMES = {
       'secret-expired': '黑暗中已过去太久...请重新输入暗号',
       'secret-experience-expired': '这份体验权限已失效，请去教团“蒙西求职记”领取正式版暗号',
       'secret-toast-welcome': '💀 欢迎归来，教团成员...',
-      'guest-banner': '⚠️ 当前用户为流浪者，组织列表仅处理第一个组织，年份也只处理第一个年份，记录类型只能选择一个',
+      'guest-banner': '⚠️ 流浪者模式：功能受限',
       'experience-banner': '⚠️ 当前为体验模式，禁忌内容已解锁，剩余',
       'guest-toast': '你被标记为流浪者，只能触及表层的禁忌...',
       'log-config-restored': '✨ 已恢复上次搜寻配置',
@@ -673,7 +673,7 @@ const THEMES = {
       'secret-expired': '已超过1小时未活动，请重新输入口令',
       'secret-experience-expired': '这段休整权限已过期，请前往据点“蒙西求职记”领取正式版暗号',
       'secret-toast-welcome': '🔧 欢迎回来，据点成员！',
-      'guest-banner': '⚠️ 当前用户为流浪者，据点列表仅处理第一个据点，年份也只处理第一个年份，储备类型只能选择一个',
+      'guest-banner': '⚠️ 流浪者模式：功能受限',
       'experience-banner': '⚠️ 当前为体验模式，全部功能已解锁，剩余',
       'guest-toast': '流浪者模式：资源有限，请节约使用',
       'log-config-restored': '✨ 已恢复上次搜寻配置',
@@ -881,7 +881,7 @@ const THEMES = {
       'secret-expired': '已超过一个时辰未修炼，请重新输入暗号',
       'secret-experience-expired': '这份万界试用已到期，请前往万界驿站“蒙西求职记”求取正式版暗号',
       'secret-toast-welcome': '🌟 欢迎归来，修士！',
-      'guest-banner': '⚠️ 当前用户为凡人，势力列表仅处理第一个势力，纪元也只处理第一个纪元，劫录类型只能选择一个',
+      'guest-banner': '⚠️ 凡人模式：功能受限',
       'experience-banner': '⚠️ 当前为体验模式，万界试用已开启，全部功能可用，剩余',
       'guest-toast': '凡人模式：只能触及最基础的万界知识',
       'log-config-restored': '✨ 已恢复上次搜寻配置',
@@ -1258,7 +1258,7 @@ function getThemeText(key) {
   if (theme && theme.texts && theme.texts[key]) return theme.texts[key];
   if (EXTRA_THEME_TEXTS[currentThemeId] && EXTRA_THEME_TEXTS[currentThemeId][key]) return EXTRA_THEME_TEXTS[currentThemeId][key];
   if (EXTRA_THEME_TEXTS.normal[key]) return EXTRA_THEME_TEXTS.normal[key];
-  return THEMES.normal.texts[key] || key;
+  return THEMES.normal.texts[key] || '';
 }
 
 function t(key, fallback) {
@@ -1283,7 +1283,7 @@ function applyTheme(themeId) {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     const text = getThemeText(key);
-    if (text) {
+    if (text !== '') {
       el.textContent = text;
       updated++;
     } else {

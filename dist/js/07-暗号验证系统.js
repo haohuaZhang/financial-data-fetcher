@@ -32,6 +32,7 @@ function renderAccessBanner() {
   const banner = document.getElementById('sanxiuBanner');
   const textEl = document.getElementById('sanxiuBannerText');
   const countdownEl = document.getElementById('sanxiuBannerCountdown');
+  const unlockBtn = document.getElementById('guestUnlockBtn');
   if (!banner || !textEl || !countdownEl) return;
 
   const verified = sessionStorage.getItem('secretVerified') === 'true';
@@ -42,6 +43,7 @@ function renderAccessBanner() {
     banner.classList.add('active');
     textEl.textContent = getThemeText('guest-banner');
     countdownEl.textContent = '';
+    if (unlockBtn) unlockBtn.style.display = '';
     return;
   }
 
@@ -50,6 +52,7 @@ function renderAccessBanner() {
     banner.classList.remove('active');
     textEl.textContent = getThemeText('guest-banner');
     countdownEl.textContent = '';
+    if (unlockBtn) unlockBtn.style.display = '';
     return;
   }
 
@@ -57,6 +60,7 @@ function renderAccessBanner() {
     stopExperienceCountdown();
     banner.classList.add('active');
     textEl.textContent = getThemeText('experience-banner');
+    if (unlockBtn) unlockBtn.style.display = 'none';
 
     const updateCountdown = () => {
       const verifiedTime = parseInt(sessionStorage.getItem('secretVerifiedTime') || '0');
@@ -79,6 +83,7 @@ function renderAccessBanner() {
   banner.classList.remove('active');
   countdownEl.textContent = '';
   textEl.textContent = getThemeText('guest-banner');
+  if (unlockBtn) unlockBtn.style.display = '';
 }
 
 // 检查sessionStorage是否已验证

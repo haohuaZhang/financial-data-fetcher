@@ -21,8 +21,9 @@
 
 <!-- ==================== 散修提示条 ==================== -->
 <div class="sanxiu-banner" id="sanxiuBanner">
-  <span class="sanxiu-banner-text" id="sanxiuBannerText" data-i18n="guest-banner">⚠️ 当前为访客模式，公司列表仅处理第一个公司，年份也只处理第一个年份，报告类型只能选择一个</span>
+  <span class="sanxiu-banner-text" id="sanxiuBannerText" data-i18n="guest-banner">⚠️ 访客模式：功能受限</span>
   <span class="sanxiu-banner-countdown" id="sanxiuBannerCountdown"></span>
+  <button class="sanxiu-banner-btn" id="guestUnlockBtn" onclick="document.getElementById('secretModal').classList.remove('hidden');document.getElementById('secretInput').focus();">输入暗号解锁</button>
 </div>
 
 <!-- ==================== 底部Toast ==================== -->
