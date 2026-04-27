@@ -128,14 +128,18 @@ function addLog(msg, level = 'info') {
   logContent.appendChild(node);
   logContent.scrollTop = logContent.scrollHeight;
   logCountNum++;
-  document.getElementById('logCount').textContent = logCountNum;
+  const logCountEl = document.getElementById('logCount');
+  if (logCountEl) logCountEl.textContent = logCountNum;
 }
 
 function clearLog() {
-  document.getElementById('logContent').innerHTML = '';
+  const logContent = document.getElementById('logContent');
+  if (!logContent) return;
+  logContent.innerHTML = '';
   window.__logHistory = [];
   logCountNum = 0;
-  document.getElementById('logCount').textContent = '0';
+  const logCountEl = document.getElementById('logCount');
+  if (logCountEl) logCountEl.textContent = '0';
 }
 
 function escapeHtml(text) {
@@ -145,18 +149,24 @@ function escapeHtml(text) {
 }
 
 function setProgress(title, current, total) {
-  document.getElementById('progressTitle').textContent = title;
-  document.getElementById('progressStats').textContent = `${current} / ${total}`;
-  const pct = total > 0 ? (current / total * 100) : 0;
+  const progressTitle = document.getElementById('progressTitle');
+  const progressStats = document.getElementById('progressStats');
   const bar = document.getElementById('progressBar');
+  if (!progressTitle || !progressStats || !bar) return;
+  progressTitle.textContent = title;
+  progressStats.textContent = `${current} / ${total}`;
+  const pct = total > 0 ? (current / total * 100) : 0;
   bar.classList.remove('indeterminate');
   bar.style.width = pct + '%';
 }
 
 function setProgressIndeterminate(title) {
-  document.getElementById('progressTitle').textContent = title;
-  document.getElementById('progressStats').textContent = '...';
+  const progressTitle = document.getElementById('progressTitle');
+  const progressStats = document.getElementById('progressStats');
   const bar = document.getElementById('progressBar');
+  if (!progressTitle || !progressStats || !bar) return;
+  progressTitle.textContent = title;
+  progressStats.textContent = '...';
   bar.classList.add('indeterminate');
   bar.style.width = '30%';
 }

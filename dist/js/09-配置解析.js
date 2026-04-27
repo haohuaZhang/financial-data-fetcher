@@ -23,7 +23,7 @@ function getRawConfig() {
     reportTypes.push(item.dataset.value);
   });
   const needPdf = document.getElementById('needPdfSwitch').classList.contains('active');
-  const nameLength = parseInt(document.getElementById('nameLength').value) || 100;
+  const nameLength = Math.max(1, parseInt(document.getElementById('nameLength').value) || 100);
   const customProxies = document.getElementById('customProxies').value.split(/\n+/).map(s => s.trim()).filter(Boolean);
   const useCustomProxy = document.getElementById('useCustomProxySwitch').classList.contains('active');
 

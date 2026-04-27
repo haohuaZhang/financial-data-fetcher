@@ -2,6 +2,7 @@
 
 var __echartsLoaded = false;
 var __echartsLoading = false;
+var __chartInstances = [];
 
 /* ---------- 动态加载 ECharts CDN ---------- */
 function loadECharts(callback) {
@@ -20,7 +21,7 @@ function loadECharts(callback) {
 // 将 __latestExcelData 转换为数组格式
 // 输入: { "公司_年报": { "表名": [[row1], [row2]] } }
 // 输出: [{ name: "公司_年报", rows: [[row1], [row2]] }]
-function convertExcelDataToArray() {
+function convertChartDataToArray() {
   var allData = window.__latestExcelData || {};
   var result = [];
   Object.keys(allData).forEach(function(sheetKey) {
@@ -98,8 +99,15 @@ function switchToChartTab() {
 
 /* ---------- 渲染所有图表 ---------- */
 function renderAllCharts() {
+  // 清理旧的图表实例和resize监听器
+  __chartInstances.forEach(function(item) {
+    item.chart.dispose();
+    window.removeEventListener('resize', item.handler);
+  });
+  __chartInstances = [];
+
   if (!window.echarts) return;
-  var files = convertExcelDataToArray();
+  var files = convertChartDataToArray();
   var noDataHtml = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:0.85rem;">暂无数据，请先采集财务数据</div>';
   
   // 使用 getElementById 直接获取容器
@@ -155,7 +163,9 @@ function renderTrendChart(files) {
     yAxis: { type: 'value', axisLabel: { fontSize: 10, formatter: function(v) { return formatChartNum(v); } } },
     series: series
   });
-  window.addEventListener('resize', function() { chart.resize(); });
+  var resizeHandler = function() { chart.resize(); };
+  window.addEventListener('resize', resizeHandler);
+  __chartInstances.push({ chart: chart, handler: resizeHandler });
 }
 
 /* ---------- 柱状图：同行对比 ---------- */
@@ -189,7 +199,9 @@ function renderBarCompareChart(files) {
     yAxis: { type: 'value', axisLabel: { fontSize: 10, formatter: function(v) { return formatChartNum(v); } } },
     series: series
   });
-  window.addEventListener('resize', function() { chart.resize(); });
+  var resizeHandler = function() { chart.resize(); };
+  window.addEventListener('resize', resizeHandler);
+  __chartInstances.push({ chart: chart, handler: resizeHandler });
 }
 
 /* ---------- 雷达图：综合指标 ---------- */
@@ -231,7 +243,9 @@ function renderRadarChart(files) {
     radar: { indicator: indicator, radius: '60%', center: ['50%', '50%'] },
     series: [{ type: 'radar', data: seriesData }]
   });
-  window.addEventListener('resize', function() { chart.resize(); });
+  var resizeHandler = function() { chart.resize(); };
+  window.addEventListener('resize', resizeHandler);
+  __chartInstances.push({ chart: chart, handler: resizeHandler });
 }
 
 /* ---------- 导出PNG ---------- */

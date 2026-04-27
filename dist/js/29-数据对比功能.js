@@ -12,7 +12,7 @@ function formatCompareNum(val) {
 /* ---------- 快速对比（从已解析数据直接对比） ---------- */
 function openQuickCompare() {
   if (!requirePremium()) return;
-  var files = (window.__latestExcelData || []).filter(function(f) { return f.type === 'excel'; });
+  var files = typeof convertExcelDataToArray === 'function' ? convertExcelDataToArray() : [];
   if (files.length < 2) {
     showBottomToast(t('compare-need-two'));
     return;
@@ -108,7 +108,7 @@ function performQuickCompare(files) {
         html += '<tr>';
         html += '<td style="font-weight:500;">' + escapeHtml(label) + '</td>';
         for (var vi = 0; vi < values.length; vi++) {
-          html += '<td style="text-align:right;">' + (values[vi].raw || '-') + '</td>';
+          html += '<td style="text-align:right;">' + (escapeHtml(values[vi].raw) || '-') + '</td>';
         }
         if (files.length >= 2) {
           var v1 = values[0].num;

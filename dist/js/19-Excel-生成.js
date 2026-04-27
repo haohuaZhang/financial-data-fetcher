@@ -34,7 +34,14 @@ function generateExcel(allData) {
       ws['!cols'] = colWidths;
     }
 
-    XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31));
+    var baseName = sheetName.substring(0, 28);
+    var finalName = baseName;
+    var nameCount = 0;
+    while (wb.SheetNames.indexOf(finalName) !== -1) {
+      nameCount++;
+      finalName = baseName.substring(0, 28 - String(nameCount).length) + '_' + nameCount;
+    }
+    XLSX.utils.book_append_sheet(wb, ws, finalName);
   }
 
   const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });

@@ -36,6 +36,7 @@ async function startFetching() {
   failedTasks = [];
   const btnStart = document.getElementById('btnStart');
   const btnStop = document.getElementById('btnStop');
+  if (!btnStart || !btnStop) return;
   // BUG-D03: 添加loading状态
   btnStart.disabled = true;
   btnStart.innerHTML = '<span class="spinner-lg"></span> ' + t('log-starting');
@@ -307,6 +308,7 @@ function stopFetching() {
   addLog(t('log-stopping'), 'warn');
   // BUG-D04: 显示正在停止状态
   const btnStop = document.getElementById('btnStop');
+  if (!btnStop) return;
   btnStop.disabled = true;
   btnStop.innerHTML = '<span class="spinner-lg"></span> ' + t('log-stopping-btn');
 }

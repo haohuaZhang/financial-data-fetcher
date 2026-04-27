@@ -1,11 +1,16 @@
 // ==================== Tab 切换 ====================
 function switchTab(tabName) {
-  document.getElementById('tabBtnLog').classList.toggle('active', tabName === 'log');
-  document.getElementById('tabBtnFiles').classList.toggle('active', tabName === 'files');
+  const tabBtnLog = document.getElementById('tabBtnLog');
+  const tabBtnFiles = document.getElementById('tabBtnFiles');
+  const panelLog = document.getElementById('panelLog');
+  const panelFiles = document.getElementById('panelFiles');
+  if (!tabBtnLog || !tabBtnFiles || !panelLog || !panelFiles) return;
+  tabBtnLog.classList.toggle('active', tabName === 'log');
+  tabBtnFiles.classList.toggle('active', tabName === 'files');
   const tabBtnFinance = document.getElementById('tabBtnFinance');
   if (tabBtnFinance) tabBtnFinance.classList.toggle('active', tabName === 'finance');
-  document.getElementById('panelLog').classList.toggle('active', tabName === 'log');
-  document.getElementById('panelFiles').classList.toggle('active', tabName === 'files');
+  panelLog.classList.toggle('active', tabName === 'log');
+  panelFiles.classList.toggle('active', tabName === 'files');
   const panelFinance = document.getElementById('panelFinance');
   if (panelFinance) panelFinance.classList.toggle('active', tabName === 'finance');
   if (tabName === 'files') {

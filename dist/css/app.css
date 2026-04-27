@@ -425,7 +425,7 @@ textarea.small { min-height: 50px; }
   flex: 1;
   display: none;
   flex-direction: column;
-  overflow: visible;
+  overflow: hidden;
   min-height: 0;
 }
 .tab-panel.active { display: flex; }
@@ -694,7 +694,8 @@ textarea.small { min-height: 50px; }
 }
 .secret-modal-overlay.hidden { display: none; }
 .modal-overlay.hidden { display: none; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 10000; }
+.modal-overlay.active { display: flex; }
 .modal-content { background: var(--bg-primary, #fff); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); position: relative; max-width: 90vw; max-height: 90vh; overflow-y: auto; }
 .secret-modal {
   background: var(--bg-primary);
@@ -1154,7 +1155,6 @@ textarea.small { min-height: 50px; }
 
 /* ==================== 暗号弹框美化（增强） ==================== */
 .secret-modal-overlay {
-  background: var(--bg-secondary);
 }
 .secret-modal {
   background: var(--bg-primary);
