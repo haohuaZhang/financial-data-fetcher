@@ -114,6 +114,11 @@ function findTablesInDoc(doc, tableName, nameLengthLimit) {
           let nextSibling = sibling.nextElementSibling;
           let wrapCount = 0;
           while (nextSibling && wrapCount < 10) {
+            // 跳过空的 <p></p> 段落（巨潮报告跨页时常见）
+            if (nextSibling.tagName === 'P' && nextSibling.textContent.trim() === '') {
+              nextSibling = nextSibling.nextElementSibling;
+              continue;
+            }
             if (nextSibling.classList && nextSibling.classList.contains('table-wrap')) {
               const innerTable = nextSibling.querySelector('table');
               if (innerTable) {
