@@ -1,9 +1,30 @@
 // ==================== 主流程 ====================
 async function startFetching() {
   if (isRunning) return;
+  isRunning = true;
+
+  // 即时输入验证
+  var companiesVal = (document.getElementById('companies') || {}).value || '';
+  var yearsVal = (document.getElementById('years') || {}).value || '';
+  var tablesVal = (document.getElementById('targetTables') || {}).value || '';
+  if (!companiesVal.trim()) {
+    showBottomToast('⚠️ 请输入公司名称');
+    isRunning = false;
+    return;
+  }
+  if (!yearsVal.trim()) {
+    showBottomToast('⚠️ 请输入年份');
+    isRunning = false;
+    return;
+  }
+  if (!tablesVal.trim()) {
+    showBottomToast('⚠️ 请输入表格名称');
+    isRunning = false;
+    return;
+  }
 
   // 检查暗号是否过期
-  if (checkSecretExpiry()) return;
+  if (checkSecretExpiry()) { isRunning = false; return; }
 
   const config = getConfig();
   // 保存配置到localStorage
@@ -16,22 +37,25 @@ async function startFetching() {
   
   if (config.companies.length === 0) {
     addLog(t('log-no-company'), 'error');
+    isRunning = false;
     return;
   }
   if (config.years.length === 0) {
     addLog(t('log-no-year'), 'error');
+    isRunning = false;
     return;
   }
   if (config.targetTables.length === 0) {
     addLog(t('log-no-table'), 'error');
+    isRunning = false;
     return;
   }
   if (config.reportTypes.length === 0) {
     addLog(t('log-no-report'), 'error');
+    isRunning = false;
     return;
   }
 
-  isRunning = true;
   shouldStop = false;
   failedTasks = [];
   const btnStart = document.getElementById('btnStart');

@@ -17,6 +17,13 @@ function getRawConfig() {
   };
   let companies = splitCommaList(document.getElementById('companies').value);
   let years = document.getElementById('years').value.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean);
+  // BUG-T2: 年份输入验证，过滤非有效4位数字
+  years = years.filter(function(y) {
+    var num = parseInt(y);
+    return !isNaN(num) && num >= 1990 && num <= 2099;
+  });
+  // BUG-T3: 年份去重
+  years = [...new Set(years)];
   const targetTables = splitCommaList(document.getElementById('targetTables').value);
   const reportTypes = [];
   document.querySelectorAll('#reportTypes .checkbox-item.active').forEach(item => {

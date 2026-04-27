@@ -24,24 +24,66 @@ function refreshConfigTemplateSelect() {
 
 function saveConfigTemplate() {
   const config = getRawConfig();
-  const name = prompt(t('config-save-name'), t('config-name-placeholder'));
-  if (!name || !name.trim()) return;
-
   const templates = getConfigTemplates();
   if (templates.length >= 10) {
     showBottomToast(t('config-max-templates'));
     return;
   }
 
-  templates.push({
-    name: name.trim(),
-    config: config,
-    createdAt: new Date().toISOString()
-  });
+  // BUG-T6: 使用内联输入框替代 prompt()
+  let overlay = document.getElementById('saveTemplateModalOverlay');
+  if (overlay) overlay.remove();
 
-  saveConfigTemplates(templates);
-  refreshConfigTemplateSelect();
-  showBottomToast(t('config-saved'));
+  overlay = document.createElement('div');
+  overlay.id = 'saveTemplateModalOverlay';
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = '\
+    <div class="secret-modal" style="max-width:400px;width:90%;">\
+      <div class="secret-icon">&#128190;</div>\
+      <div class="secret-hint">' + (t('config-save-name') || '请输入模板名称') + '</div>\
+      <input class="secret-input" id="saveTemplateNameInput" type="text" placeholder="' + (t('config-name-placeholder') || '我的模板') + '" maxlength="30" />\
+      <div class="secret-actions">\
+        <button class="btn-confirm" id="saveTemplateNameConfirm">' + (t('btn-confirm') || '确认') + '</button>\
+        <button class="btn-skip" id="saveTemplateNameCancel">' + (t('btn-cancel') || '取消') + '</button>\
+      </div>\
+    </div>';
+
+  document.body.appendChild(overlay);
+  requestAnimationFrame(function() { overlay.classList.add('active'); });
+
+  var input = document.getElementById('saveTemplateNameInput');
+  input.focus();
+
+  function closeModal() {
+    overlay.classList.remove('active');
+    setTimeout(function() { overlay.remove(); }, 300);
+  }
+
+  function doSave() {
+    var name = input.value.trim();
+    if (!name) {
+      input.classList.add('error');
+      setTimeout(function() { input.classList.remove('error'); }, 400);
+      return;
+    }
+    templates.push({
+      name: name,
+      config: config,
+      createdAt: new Date().toISOString()
+    });
+    saveConfigTemplates(templates);
+    refreshConfigTemplateSelect();
+    showBottomToast(t('config-saved'));
+    closeModal();
+  }
+
+  document.getElementById('saveTemplateNameConfirm').addEventListener('click', doSave);
+  document.getElementById('saveTemplateNameCancel').addEventListener('click', closeModal);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doSave();
+    if (e.key === 'Escape') closeModal();
+  });
 }
 
 function loadConfigTemplate() {
