@@ -811,6 +811,20 @@ textarea.small { min-height: 50px; }
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+.bottom-toast.bottom-toast--vip {
+  white-space: pre-line;
+  max-width: min(440px, 92vw);
+  padding: 14px 22px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  text-align: center;
+  background: linear-gradient(145deg, rgba(30, 27, 75, 0.96) 0%, rgba(67, 56, 202, 0.94) 55%, rgba(99, 102, 241, 0.92) 100%);
+  border: 1px solid rgba(253, 224, 71, 0.45);
+  box-shadow:
+    0 12px 48px rgba(79, 70, 229, 0.42),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset,
+    0 0 60px rgba(251, 191, 36, 0.15);
+}
 .modal-overlay.active {
   display: flex;
   animation: fadeIn 0.2s ease;
@@ -1242,6 +1256,187 @@ textarea.small { min-height: 50px; }
 }
 .sanxiu-banner.active { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
 .sanxiu-banner-countdown { font-weight: 700; }
+.sanxiu-banner.sanxiu-banner--vip {
+  position: relative;
+  overflow: hidden;
+  padding: 13px 22px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  color: var(--accent);
+  border-bottom: none;
+  background: linear-gradient(
+    110deg,
+    var(--accent-dim) 0%,
+    rgba(253, 224, 71, 0.22) 22%,
+    rgba(124, 58, 237, 0.16) 48%,
+    rgba(253, 224, 71, 0.18) 72%,
+    var(--accent-dim) 100%
+  );
+  background-size: 220% 100%;
+  animation: vipBannerFlow 6s ease-in-out infinite;
+  box-shadow:
+    0 0 0 1px rgba(253, 224, 71, 0.35) inset,
+    0 4px 28px rgba(79, 70, 229, 0.18),
+    0 0 40px rgba(251, 191, 36, 0.12);
+}
+.sanxiu-banner.sanxiu-banner--vip::before {
+  content: '';
+  position: absolute;
+  inset: -40% -20%;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65%);
+  animation: vipBannerSheen 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+.sanxiu-banner.sanxiu-banner--vip .sanxiu-banner-text,
+.sanxiu-banner.sanxiu-banner--vip .sanxiu-banner-countdown {
+  position: relative;
+  z-index: 1;
+}
+.sanxiu-banner.sanxiu-banner--vip .sanxiu-banner-countdown {
+  font-weight: 600;
+  font-size: 0.8rem;
+  opacity: 0.95;
+}
+.sanxiu-banner.sanxiu-banner--vip.sanxiu-banner--vip-entrance {
+  animation: vipBannerEntrance 0.75s cubic-bezier(0.22, 1, 0.36, 1) both, vipBannerFlow 6s ease-in-out 0.75s infinite;
+}
+@keyframes vipBannerFlow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes vipBannerSheen {
+  0% { transform: translateX(-35%) rotate(8deg); opacity: 0; }
+  15% { opacity: 0.55; }
+  100% { transform: translateX(35%) rotate(8deg); opacity: 0; }
+}
+@keyframes vipBannerEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scaleY(0.92);
+    filter: brightness(1.4);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+    filter: brightness(1);
+  }
+}
+
+.header-vip-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 10px;
+  padding: 4px 12px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #1e1b4b;
+  vertical-align: middle;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #fef9c3, #fde047, #fbbf24, #fde047, #fef9c3);
+  background-size: 220% 100%;
+  animation: vipBadgeShimmer 2.8s ease-in-out infinite;
+  box-shadow:
+    0 0 22px rgba(251, 191, 36, 0.55),
+    0 2px 10px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.65) inset;
+}
+@keyframes vipBadgeShimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+#btnStart.btn-vip-primary {
+  position: relative;
+  background: linear-gradient(135deg, var(--accent) 0%, #6d28d9 45%, var(--accent-hover) 100%);
+  background-size: 200% auto;
+  animation: vipBtnGlow 3.5s ease infinite;
+  box-shadow:
+    0 4px 22px rgba(99, 102, 241, 0.45),
+    0 0 0 1px rgba(253, 224, 71, 0.4) inset,
+    0 0 28px rgba(251, 191, 36, 0.2);
+}
+#btnStart.btn-vip-primary::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  animation: vipBtnSheen 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes vipBtnGlow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes vipBtnSheen {
+  0% { transform: translateX(-100%); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+.theme-bg-deco.vip-deco-chrome {
+  filter: saturate(1.12) contrast(1.02);
+}
+[data-theme="normal"] .theme-bg-deco.vip-deco-chrome {
+  opacity: 0.55 !important;
+}
+[data-theme="normal"] .theme-bg-deco.vip-deco-chrome .theme-bg-deco-inner {
+  background: radial-gradient(ellipse 100% 80% at 50% 0%, rgba(99, 102, 241, 0.12), transparent 55%),
+    radial-gradient(ellipse 80% 60% at 80% 100%, rgba(251, 191, 36, 0.1), transparent 50%);
+}
+
+.bottom-toast.bottom-toast--vip.show {
+  animation: vipToastReveal 0.62s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes vipToastReveal {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(28px) scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.vip-sparkle {
+  position: fixed;
+  width: 7px;
+  height: 7px;
+  margin-left: -3px;
+  margin-top: -3px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  background: radial-gradient(circle at 30% 30%, #fff 0%, #fef08a 35%, #f59e0b 100%);
+  box-shadow: 0 0 14px #fbbf24, 0 0 4px #fff;
+  animation: vipSparkleFly 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes vipSparkleFly {
+  from {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(var(--sx), var(--sy)) scale(0.15);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sanxiu-banner.sanxiu-banner--vip,
+  .sanxiu-banner.sanxiu-banner--vip::before,
+  .sanxiu-banner.sanxiu-banner--vip.sanxiu-banner--vip-entrance,
+  .header-vip-badge,
+  #btnStart.btn-vip-primary,
+  #btnStart.btn-vip-primary::after,
+  .bottom-toast.bottom-toast--vip.show {
+    animation: none !important;
+  }
+}
 
 /* ==================== 按钮增强样式 ==================== */
 .btn {

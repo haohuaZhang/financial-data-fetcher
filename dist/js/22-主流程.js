@@ -163,7 +163,7 @@ async function startFetching() {
 
               if (!shouldStop) {
                 addLog(t('log-delay'), 'debug');
-                await randomDelay(3000, 8000);
+                await randomDelay(1000, 3000);
               }
             }
             allExcelData[sheetKey] = mergedTables;
@@ -245,7 +245,7 @@ async function startFetching() {
 
               if (!shouldStop) {
                 addLog(t('log-delay'), 'debug');
-                await randomDelay(3000, 8000);
+                await randomDelay(1000, 3000);
               }
             }
 
@@ -268,7 +268,7 @@ async function startFetching() {
 
       updateCompanyStatus(company, 'success', t('log-company-done'));
       if (!shouldStop) {
-        await randomDelay(5000, 10000);
+        await randomDelay(2000, 5000);
       }
     }
 

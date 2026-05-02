@@ -20,8 +20,18 @@ async function fetchReportTables(reportUrl, targetTables, nameLengthLimit, needP
       foundTables = findTablesInDoc(doc, shortName, nameLengthLimit);
     }
 
-    if (foundTables.length > 0) {
-      // 合并所有找到的表格数据（处理跨页情况）
+    if (tableName === '合并财务报表项目注释' && typeof isVipMember === 'function' && isVipMember()) {
+      addLog(`开始查找"合并财务报表项目注释"的相关子表格...`, 'info');
+      const subTables = findMergeNotesSubTables(doc, tableName, nameLengthLimit);
+      if (subTables.length > 0) {
+        allTables[tableName] = subTables;
+        addLog(`找到 ${subTables.length} 个相关子表格`, 'success');
+      } else {
+        allTables[tableName] = [];
+        addLog(`${t('log-table-not-found')} "${tableName}"`, 'error');
+      }
+    } else if (foundTables.length > 0) {
+      // 普通表格：合并所有找到的表格数据（处理跨页情况）
       let mergedRows = [];
       for (const tableRows of foundTables) {
         if (mergedRows.length === 0) {
@@ -277,23 +287,297 @@ function isValidTable(rows) {
 }
 
 /**
- * 解析HTML table元素为二维数组
+ * 解析HTML table元素为二维数组（按 rowspan/colspan 展开网格）
  */
 function parseTable(tableEl) {
-  const rows = [];
+  const grid = [];
   const trs = tableEl.querySelectorAll('tr');
-  for (const tr of trs) {
-    const cells = [];
-    const tds = tr.querySelectorAll('td, th');
+  for (let r = 0; r < trs.length; r++) {
+    if (!grid[r]) grid[r] = [];
+    let c = 0;
+    const tds = trs[r].querySelectorAll('td, th');
     for (const td of tds) {
-      let text = td.textContent.trim().replace(/\s+/g, ' ');
-      const colspan = parseInt(td.getAttribute('colspan')) || 1;
-      cells.push(text);
-      for (let c = 1; c < colspan; c++) {
-        cells.push('');
+      while (grid[r][c] !== undefined) c++;
+
+      const text = td.textContent.trim().replace(/\s+/g, ' ');
+      const colspan = Math.max(1, parseInt(td.getAttribute('colspan'), 10) || 1);
+      const rowspan = Math.max(1, parseInt(td.getAttribute('rowspan'), 10) || 1);
+
+      for (let dr = 0; dr < rowspan; dr++) {
+        const rr = r + dr;
+        while (grid.length <= rr) grid.push([]);
+        for (let dc = 0; dc < colspan; dc++) {
+          const cc = c + dc;
+          if (dr === 0 && dc === 0) grid[rr][cc] = text;
+          else grid[rr][cc] = '';
+        }
+      }
+      c += colspan;
+    }
+  }
+
+  let maxCols = 0;
+  for (let ri = 0; ri < grid.length; ri++) {
+    const row = grid[ri];
+    maxCols = Math.max(maxCols, row.length);
+    for (let ci = 0; ci < row.length; ci++) {
+      if (row[ci] !== undefined) maxCols = Math.max(maxCols, ci + 1);
+    }
+  }
+
+  return grid.map(row => {
+    const out = [];
+    for (let i = 0; i < maxCols; i++) {
+      const v = row[i];
+      out.push(v === undefined ? '' : String(v));
+    }
+    return out;
+  });
+}
+
+const chineseNumbersArr = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+const mergeNotesDigitTitleRe = /^\s*([0-9０-９]{1,4})[、:：．.]/;
+const mergeNotesParenNumDotRe = /^\s*[（(]([0-9０-９]{1,4})[）\)][.．。:：]\s*/;
+
+function collectPrevSiblingPsBeforeWrap(wrap, maxP) {
+  const ps = [];
+  let cur = wrap.previousElementSibling;
+  while (cur && ps.length < maxP) {
+    if (cur.tagName === 'P') ps.unshift(cur);
+    cur = cur.previousElementSibling;
+  }
+  return ps;
+}
+
+function findPreviousPElement(node) {
+  let n = node && node.previousElementSibling;
+  while (n && n.tagName !== 'P') n = n.previousElementSibling;
+  return n;
+}
+
+function analyzeMergeNotesPrevPs(prevPs) {
+  let digitP = null;
+  for (let i = prevPs.length - 1; i >= 0; i--) {
+    const t = prevPs[i].textContent.trim();
+    if (mergeNotesDigitTitleRe.test(t)) {
+      digitP = prevPs[i];
+      break;
+    }
+  }
+  let parenP = null;
+  for (let i = prevPs.length - 1; i >= 0; i--) {
+    const t = prevPs[i].textContent.trim();
+    if (mergeNotesParenNumDotRe.test(t)) {
+      parenP = prevPs[i];
+      break;
+    }
+  }
+  let shiyongSubtitleP = null;
+  for (let i = 0; i < prevPs.length; i++) {
+    if (prevPs[i].textContent.indexOf('适用') < 0) continue;
+    const prevP = findPreviousPElement(prevPs[i]);
+    if (!prevP) continue;
+    const prevTx = prevP.textContent.trim();
+    if (!prevTx) continue;
+    if (mergeNotesDigitTitleRe.test(prevTx)) continue;
+    shiyongSubtitleP = prevP;
+    break;
+  }
+  let danweiSubtitleP = null;
+  for (let i = prevPs.length - 1; i >= 0; i--) {
+    if (prevPs[i].textContent.indexOf('单位：元') < 0) continue;
+    let anchor = findPreviousPElement(prevPs[i]);
+    while (anchor) {
+      const tx = anchor.textContent.trim();
+      if (!tx) {
+        anchor = findPreviousPElement(anchor);
+        continue;
+      }
+      if (mergeNotesDigitTitleRe.test(tx)) break;
+      if (tx.indexOf('适用') >= 0) {
+        anchor = findPreviousPElement(anchor);
+        continue;
+      }
+      danweiSubtitleP = anchor;
+      break;
+    }
+    break;
+  }
+  const hasShiyong = shiyongSubtitleP !== null;
+  const hasDanwei = danweiSubtitleP !== null;
+  const conflict = !!(digitP && (parenP || hasShiyong || hasDanwei));
+  return { digitP, parenP, shiyongSubtitleP, danweiSubtitleP, conflict };
+}
+
+function pickTableSubtitleP(meta) {
+  if (meta.conflict) return meta.parenP || meta.shiyongSubtitleP || meta.danweiSubtitleP;
+  return meta.digitP || meta.parenP || meta.shiyongSubtitleP || meta.danweiSubtitleP;
+}
+
+function buildMergeNotesTitleWithInterveningPs(subtitleP, wrap) {
+  const core = subtitleP.textContent.trim();
+  const chunks = [];
+  let n = subtitleP.nextElementSibling;
+  while (n && n !== wrap) {
+    if (n.tagName === 'P') {
+      const tx = n.textContent.trim();
+      if (tx) chunks.push(tx);
+    }
+    n = n.nextElementSibling;
+  }
+  const mid = chunks.join('');
+  return mid ? core + '（' + mid + '）' : core;
+}
+
+function mergeTableFragmentsToRows(fragments) {
+  let mergedRows = [];
+  for (const tableRows of fragments) {
+    if (mergedRows.length === 0) {
+      mergedRows = tableRows;
+    } else if (tableRows.length > 1) {
+      const firstDataRow = tableRows[0];
+      const lastMergedRow = mergedRows[mergedRows.length - 1];
+      if (isSimilarRow(firstDataRow, lastMergedRow)) {
+        mergedRows = mergedRows.concat(tableRows.slice(1));
+      } else {
+        mergedRows = mergedRows.concat(tableRows);
+      }
+    } else {
+      mergedRows = mergedRows.concat(tableRows);
+    }
+  }
+  return mergedRows;
+}
+
+function findMergeNotesSubTables(doc, tableName, nameLengthLimit) {
+  const results = [];
+  const allP = doc.querySelectorAll('p');
+  let startElement = null;
+
+  for (const p of allP) {
+    const text = p.textContent.trim();
+    if (text.length <= nameLengthLimit && text.includes(tableName)) {
+      startElement = p;
+      break;
+    }
+  }
+  if (!startElement && tableName.includes('合并')) {
+    const shortName = tableName.replace('合并', '');
+    for (const p of allP) {
+      const text = p.textContent.trim();
+      if (text.length <= nameLengthLimit && text.includes(shortName)) {
+        startElement = p;
+        break;
       }
     }
-    rows.push(cells);
   }
-  return rows;
+  if (!startElement) {
+    addLog(`[子表格查找] 未找到起始标题`, 'warn');
+    return results;
+  }
+
+  const head = startElement.textContent.trim().slice(0, 48);
+  const sectionHeadRe = /^[（(]?([一二三四五六七八九十]+)[）)]?[、.．]?/;
+  const headMatch = sectionHeadRe.exec(head);
+  let stopNumChar = null;
+  if (headMatch) {
+    const idx = chineseNumbersArr.indexOf(headMatch[1]);
+    if (idx >= 0 && idx + 1 < chineseNumbersArr.length) stopNumChar = chineseNumbersArr[idx + 1];
+  }
+
+  let startIdx = -1;
+  for (let i = 0; i < allP.length; i++) {
+    if (allP[i] === startElement) {
+      startIdx = i;
+      break;
+    }
+  }
+  if (startIdx < 0) return results;
+
+  const majorSectionRe = /^[（(]?([一二三四五六七八九十]+)[）)]?[、.．]/;
+  let stopPElement = null;
+  if (stopNumChar) {
+    for (let i = startIdx + 1; i < allP.length; i++) {
+      const p = allP[i];
+      const text = p.textContent.trim();
+      if (text.length <= nameLengthLimit && text.includes(tableName)) continue;
+      if (text.length <= nameLengthLimit) {
+        const mj = majorSectionRe.exec(text);
+        if (mj && mj[1] === stopNumChar) {
+          stopPElement = p;
+          addLog(`[子表格查找] 遇到下一章节，停止搜索`, 'info');
+          break;
+        }
+      }
+    }
+  }
+
+  function wrapIsInsideSection(wrap) {
+    if (!(startElement.compareDocumentPosition(wrap) & Node.DOCUMENT_POSITION_FOLLOWING)) return false;
+    if (stopPElement && !(wrap.compareDocumentPosition(stopPElement) & Node.DOCUMENT_POSITION_FOLLOWING)) return false;
+    return true;
+  }
+
+  let suppressGapBeforeNextFlush = false;
+
+  function flushBlock(title, rows) {
+    if (!title || !rows || rows.length === 0) return;
+    if (results.length > 0 && !suppressGapBeforeNextFlush) {
+      results.push([]);
+      results.push([]);
+    }
+    suppressGapBeforeNextFlush = false;
+    results.push([title]);
+    for (let r = 0; r < rows.length; r++) results.push(rows[r]);
+  }
+
+  let pendingTitle = null;
+  let pendingRows = null;
+
+  const allWraps = doc.querySelectorAll('div.table-wrap');
+  for (const wrap of allWraps) {
+    if (!wrapIsInsideSection(wrap)) continue;
+
+    const table = wrap.querySelector('table');
+    if (!table) continue;
+    const parsed = parseTable(table);
+    if (!isValidTable(parsed)) continue;
+
+    const psib = wrap.previousElementSibling;
+    const pTrim = psib && psib.tagName === 'P' ? psib.textContent.trim() : '';
+    const prevEl = psib ? psib.previousElementSibling : null;
+    const prevIsTableWrap = psib && psib.classList && psib.classList.contains('table-wrap');
+    const gapThenWrap = psib && psib.tagName === 'P' && (pTrim === '/' || pTrim === '') &&
+      prevEl && prevEl.classList && prevEl.classList.contains('table-wrap');
+
+    if (pendingTitle && pendingRows && (prevIsTableWrap || gapThenWrap)) {
+      pendingRows = mergeTableFragmentsToRows([pendingRows, parsed]);
+      continue;
+    }
+
+    const prevPs = collectPrevSiblingPsBeforeWrap(wrap, 4);
+    const meta = analyzeMergeNotesPrevPs(prevPs);
+    const tableSubtitleP = pickTableSubtitleP(meta);
+    let plainDigitLine = null;
+    if (meta.conflict && meta.digitP) plainDigitLine = meta.digitP.textContent.trim();
+    const titleText = tableSubtitleP ? buildMergeNotesTitleWithInterveningPs(tableSubtitleP, wrap) : null;
+
+    if (titleText) {
+      flushBlock(pendingTitle, pendingRows);
+      if (plainDigitLine) {
+        if (results.length > 0) {
+          results.push([]);
+          results.push([]);
+        }
+        results.push([plainDigitLine]);
+        suppressGapBeforeNextFlush = true;
+      }
+      pendingTitle = titleText;
+      pendingRows = parsed;
+      addLog(`[子表格查找] table-wrap ← "${titleText.substring(0, 60)}"`, 'debug');
+    }
+  }
+
+  flushBlock(pendingTitle, pendingRows);
+  return results;
 }

@@ -1,7 +1,9 @@
 // ==================== 暗号验证系统 ====================
-const SECRET_CODES = ['我是坤哥你记住', '1', '张大帅', '林肥肥', '520'];
+const VIP_CODES = ['上山打老虎', 'vip', '林肥肥'];
+const SECRET_CODES = ['我是坤哥你记住', '1', '张大帅', '520'];
 const EXPERIENCE_CODES = ['饿了会吃饭', '我是小帅', '鸡你太美', '重生之我在异世界当牛马', '2'];
 const SECRET_MODE_KEY = 'secretVerifiedMode';
+const VIP_DISPLAY_NAME_KEY = 'vipDisplayName';
 const EXPERIENCE_EXPIRED_KEY = 'experienceSecretExpired';
 const SECRET_EXPIRE_MS = 3600000;
 const EXPERIENCE_EXPIRE_MS = 3600000;
@@ -9,6 +11,84 @@ let guestModeActive = false;
 let experienceBannerTimer = null;
 let isMember = false; // 是否已验证暗号（门派弟子）
 let secretExpired = false; // 暗号是否已过期
+
+function escapeVipDisplayName(s) {
+  if (s == null) return '';
+  return String(s).replace(/[\u0000-\u001F<>]/g, '').trim().slice(0, 32);
+}
+
+function fillVipPlaceholders(str, name) {
+  const n = escapeVipDisplayName(name) || 'VIP';
+  return String(str || '').replace(/\{\{name\}\}/g, n);
+}
+
+function syncVipChrome() {
+  const on = typeof isVipMember === 'function' && isVipMember();
+  document.body.classList.toggle('vip-mode', on);
+  const start = document.getElementById('btnStart');
+  if (start) start.classList.toggle('btn-vip-primary', on);
+  const deco = document.querySelector('.theme-bg-deco');
+  if (deco) deco.classList.toggle('vip-deco-chrome', on);
+  let badge = document.getElementById('headerVipBadge');
+  if (on) {
+    if (!badge) {
+      const title = document.querySelector('.header-title');
+      if (title && title.parentElement) {
+        badge = document.createElement('span');
+        badge.id = 'headerVipBadge';
+        badge.className = 'header-vip-badge';
+        badge.textContent = '✦ VIP ✦';
+        badge.setAttribute('aria-label', 'VIP 尊享');
+        title.parentElement.insertBefore(badge, title.nextSibling);
+      }
+    }
+  } else if (badge) {
+    badge.remove();
+  }
+}
+
+function burstVipSparkles() {
+  const cx = window.innerWidth * 0.5;
+  const cy = Math.min(window.innerHeight * 0.2, 160);
+  const n = 26;
+  for (let i = 0; i < n; i++) {
+    const el = document.createElement('span');
+    el.className = 'vip-sparkle';
+    el.setAttribute('aria-hidden', 'true');
+    const ang = (Math.PI * 2 * i) / n + Math.random() * 0.4;
+    const dist = 90 + Math.random() * 160;
+    el.style.setProperty('--sx', (Math.cos(ang) * dist).toFixed(1) + 'px');
+    el.style.setProperty('--sy', (Math.sin(ang) * dist * 0.55 - 20).toFixed(1) + 'px');
+    el.style.left = cx + 'px';
+    el.style.top = cy + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => {
+      try {
+        el.remove();
+      } catch (e) {}
+    }, 1300);
+  }
+}
+
+function playVipWelcomeFX() {
+  const banner = document.getElementById('sanxiuBanner');
+  if (banner) {
+    banner.classList.remove('sanxiu-banner--vip-entrance');
+    void banner.offsetWidth;
+    banner.classList.add('sanxiu-banner--vip-entrance');
+    setTimeout(() => banner.classList.remove('sanxiu-banner--vip-entrance'), 2600);
+  }
+  burstVipSparkles();
+}
+
+function isVipMember() {
+  try {
+    return sessionStorage.getItem('secretVerified') === 'true' &&
+      sessionStorage.getItem(SECRET_MODE_KEY) === 'vip';
+  } catch (e) {
+    return false;
+  }
+}
 
 function formatCountdown(ms) {
   const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
@@ -33,57 +113,79 @@ function renderAccessBanner() {
   const textEl = document.getElementById('sanxiuBannerText');
   const countdownEl = document.getElementById('sanxiuBannerCountdown');
   const unlockBtn = document.getElementById('guestUnlockBtn');
-  if (!banner || !textEl || !countdownEl) return;
-
-  const verified = sessionStorage.getItem('secretVerified') === 'true';
-  const mode = sessionStorage.getItem(SECRET_MODE_KEY) || 'permanent';
-
-  if (guestModeActive && !verified) {
-    stopExperienceCountdown();
-    banner.classList.add('active');
-    textEl.textContent = getThemeText('guest-banner');
-    countdownEl.textContent = '';
-    if (unlockBtn) unlockBtn.style.display = '';
+  if (!banner || !textEl || !countdownEl) {
+    syncVipChrome();
     return;
   }
 
-  if (!verified) {
+  try {
+    const verified = sessionStorage.getItem('secretVerified') === 'true';
+    const mode = sessionStorage.getItem(SECRET_MODE_KEY) || 'permanent';
+
+    banner.classList.remove('sanxiu-banner--vip');
+
+    if (guestModeActive && !verified) {
+      stopExperienceCountdown();
+      banner.classList.add('active');
+      textEl.textContent = getThemeText('guest-banner');
+      countdownEl.textContent = '';
+      if (unlockBtn) unlockBtn.style.display = '';
+      return;
+    }
+
+    if (!verified) {
+      stopExperienceCountdown();
+      banner.classList.remove('active');
+      textEl.textContent = getThemeText('guest-banner');
+      countdownEl.textContent = '';
+      if (unlockBtn) unlockBtn.style.display = '';
+      return;
+    }
+
+    if (mode === 'experience') {
+      stopExperienceCountdown();
+      banner.classList.add('active');
+      textEl.textContent = getThemeText('experience-banner');
+      if (unlockBtn) unlockBtn.style.display = 'none';
+
+      const updateCountdown = () => {
+        const verifiedTime = parseInt(sessionStorage.getItem('secretVerifiedTime') || '0');
+        const remaining = EXPERIENCE_EXPIRE_MS - (Date.now() - verifiedTime);
+        if (remaining <= 0) {
+          stopExperienceCountdown();
+          countdownEl.textContent = '';
+          checkSecretExpiry();
+          return;
+        }
+        countdownEl.textContent = `${formatCountdown(remaining)} 后失效`;
+      };
+
+      updateCountdown();
+      experienceBannerTimer = setInterval(updateCountdown, 1000);
+      return;
+    }
+
+    if (mode === 'vip') {
+      stopExperienceCountdown();
+      banner.classList.add('active');
+      banner.classList.add('sanxiu-banner--vip');
+      const stored = sessionStorage.getItem(VIP_DISPLAY_NAME_KEY) || '';
+      const displayName = escapeVipDisplayName(stored) || 'VIP';
+      textEl.textContent = fillVipPlaceholders(getThemeText('vip-banner'), displayName);
+      const extra = getThemeText('vip-banner-extra');
+      countdownEl.textContent = extra ? fillVipPlaceholders(extra, displayName) : '';
+      if (unlockBtn) unlockBtn.style.display = 'none';
+      return;
+    }
+
     stopExperienceCountdown();
     banner.classList.remove('active');
-    textEl.textContent = getThemeText('guest-banner');
     countdownEl.textContent = '';
+    textEl.textContent = getThemeText('guest-banner');
     if (unlockBtn) unlockBtn.style.display = '';
-    return;
+  } finally {
+    syncVipChrome();
   }
-
-  if (mode === 'experience') {
-    stopExperienceCountdown();
-    banner.classList.add('active');
-    textEl.textContent = getThemeText('experience-banner');
-    if (unlockBtn) unlockBtn.style.display = 'none';
-
-    const updateCountdown = () => {
-      const verifiedTime = parseInt(sessionStorage.getItem('secretVerifiedTime') || '0');
-      const remaining = EXPERIENCE_EXPIRE_MS - (Date.now() - verifiedTime);
-      if (remaining <= 0) {
-        stopExperienceCountdown();
-        countdownEl.textContent = '';
-        checkSecretExpiry();
-        return;
-      }
-      countdownEl.textContent = `${formatCountdown(remaining)} 后失效`;
-    };
-
-    updateCountdown();
-    experienceBannerTimer = setInterval(updateCountdown, 1000);
-    return;
-  }
-
-  stopExperienceCountdown();
-  banner.classList.remove('active');
-  countdownEl.textContent = '';
-  textEl.textContent = getThemeText('guest-banner');
-  if (unlockBtn) unlockBtn.style.display = '';
 }
 
 // 检查sessionStorage是否已验证
@@ -123,6 +225,7 @@ function checkSecretExpiry() {
     sessionStorage.removeItem('secretVerified');
     sessionStorage.removeItem('secretVerifiedTime');
     sessionStorage.removeItem(SECRET_MODE_KEY);
+    sessionStorage.removeItem(VIP_DISPLAY_NAME_KEY);
     guestModeActive = false;
     isMember = false;
     secretExpired = true;
@@ -163,6 +266,27 @@ function verifySecret() {
     return;
   }
 
+  if (VIP_CODES.includes(input)) {
+    isMember = true;
+    guestModeActive = false;
+    secretExpired = false;
+    const rawIn = input.trim();
+    const vipLabel = escapeVipDisplayName(rawIn) || rawIn.slice(0, 32) || 'VIP';
+    sessionStorage.setItem(VIP_DISPLAY_NAME_KEY, vipLabel);
+    sessionStorage.setItem('secretVerified', 'true');
+    sessionStorage.setItem(SECRET_MODE_KEY, 'vip');
+    sessionStorage.setItem('secretVerifiedTime', Date.now().toString());
+    localStorage.removeItem(EXPERIENCE_EXPIRED_KEY);
+    document.getElementById('secretModal').classList.add('hidden');
+    showBottomToast(fillVipPlaceholders(getThemeText('vip-toast'), vipLabel), 6200, 'bottom-toast--vip');
+    renderAccessBanner();
+    playVipWelcomeFX();
+    var hintVip = document.getElementById('checkinBannerHint');
+    if (hintVip) hintVip.remove();
+    if (typeof updateHeaderPoints === 'function') updateHeaderPoints();
+    return;
+  }
+
   if (EXPERIENCE_CODES.includes(input)) {
     if (isExperienceExpired()) {
       errorEl.textContent = t('secret-experience-expired');
@@ -175,6 +299,7 @@ function verifySecret() {
       sessionStorage.removeItem('secretVerified');
       sessionStorage.removeItem('secretVerifiedTime');
       sessionStorage.removeItem(SECRET_MODE_KEY);
+      sessionStorage.removeItem(VIP_DISPLAY_NAME_KEY);
       localStorage.setItem(EXPERIENCE_EXPIRED_KEY, 'true');
       isMember = false;
       secretExpired = true;
@@ -189,6 +314,7 @@ function verifySecret() {
     sessionStorage.setItem('secretVerified', 'true');
     sessionStorage.setItem(SECRET_MODE_KEY, 'experience');
     sessionStorage.setItem('secretVerifiedTime', Date.now().toString());
+    sessionStorage.removeItem(VIP_DISPLAY_NAME_KEY);
     document.getElementById('secretModal').classList.add('hidden');
     showBottomToast(t('secret-toast-welcome'));
     renderAccessBanner();
@@ -208,6 +334,7 @@ function verifySecret() {
     sessionStorage.setItem('secretVerified', 'true');
     sessionStorage.setItem(SECRET_MODE_KEY, 'permanent');
     sessionStorage.setItem('secretVerifiedTime', Date.now().toString());
+    sessionStorage.removeItem(VIP_DISPLAY_NAME_KEY);
     // 正式暗号验证成功，清除体验过期标记
     localStorage.removeItem(EXPERIENCE_EXPIRED_KEY);
     document.getElementById('secretModal').classList.add('hidden');
@@ -248,12 +375,22 @@ function skipSecret() {
   }
 }
 
-// 底部Toast提示
-function showBottomToast(msg) {
+let __bottomToastTimer = null;
+function showBottomToast(msg, durationMs, extraClass) {
   const toast = document.getElementById('bottomToast');
+  if (!toast) return;
+  if (__bottomToastTimer) {
+    clearTimeout(__bottomToastTimer);
+    __bottomToastTimer = null;
+  }
+  toast.className = 'bottom-toast' + (extraClass ? ' ' + extraClass : '');
   toast.textContent = msg;
   toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2000);
+  const ms = durationMs != null ? durationMs : 2000;
+  __bottomToastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+    __bottomToastTimer = null;
+  }, ms);
 }
 
 // 限制功法等级只能选一个（散修模式）
